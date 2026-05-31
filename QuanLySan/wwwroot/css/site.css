@@ -551,6 +551,30 @@ body.bg-switching .stadium-backdrop__image {
   padding: 26px;
 }
 
+/* Summary panel dùng nền tối để chữ trắng hiện rõ */
+.summary-panel {
+  background: linear-gradient(145deg, #155f45 0%, #1a7a5a 50%, #0f4a35 100%) !important;
+  color: #ffffff;
+}
+
+.summary-panel h1,
+.summary-panel h2,
+.summary-panel h3,
+.summary-panel h4,
+.summary-panel h5,
+.summary-panel p,
+.summary-panel .eyebrow {
+  color: #ffffff;
+}
+
+.summary-panel .eyebrow {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.summary-panel .text-white-50 {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
 .app-form {
   display: grid;
   gap: 12px;

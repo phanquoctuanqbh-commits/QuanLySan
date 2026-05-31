@@ -331,6 +331,7 @@ public class SanController : Controller
         current.MoTa = san.MoTa;
         current.TrangThai = san.TrangThai;
         current.DiaChi = san.DiaChi;
+        current.GoogleMapUrl = san.GoogleMapUrl;
         current.Latitude = san.Latitude;
         current.Longitude = san.Longitude;
         

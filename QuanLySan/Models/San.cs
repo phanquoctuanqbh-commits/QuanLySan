@@ -10,6 +10,7 @@ namespace QuanLySan.Models
         public string HinhAnh { get; set; } = string.Empty;
         public bool TrangThai { get; set; } = true;
         public string DiaChi { get; set; } = string.Empty;
+        public string GoogleMapUrl { get; set; } = string.Empty;
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public string OwnerId { get; set; } = string.Empty;
