@@ -1,0 +1,223 @@
+@inject QuanLySan.Data.ApplicationDbContext DbContext
+@{
+    var siteSettings = DbContext.SiteSettings.FirstOrDefault() ?? new QuanLySan.Models.SiteSetting();
+    var isOwner = User.IsInRole("Owner") || User.IsInRole("ChuSan");
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - Quản Lý Sân</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="stadium-backdrop" aria-hidden="true">
+        <div class="stadium-backdrop__image"></div>
+        <div class="stadium-backdrop__shade"></div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg app-navbar">
+        <div class="container">
+            <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index" data-bg-theme="stadium">SportHub</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item dropdown mega-menu-dropdown">
+                        <a class="nav-link dropdown-toggle fw-bold" href="#" id="mainMegaMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">Chức năng</a>
+                        <div class="dropdown-menu mega-menu-menu" aria-labelledby="mainMegaMenu">
+                            <div class="mega-menu-grid">
+                                <section>
+                                    <h6>Sân</h6>
+                                    <a class="dropdown-item" asp-controller="San" asp-action="Index">Danh sách sân</a>
+                                    <a class="dropdown-item" asp-controller="San" asp-action="TimKiem">Tìm sân</a>
+                                    <a class="dropdown-item" asp-controller="DatSan" asp-action="Calendar">Lịch sân</a>
+                                </section>
+
+                                <section>
+                                    <h6>Tài khoản</h6>
+                                    @if (User.Identity?.IsAuthenticated == true)
+                                    {
+                                        <a class="dropdown-item" asp-controller="Notification" asp-action="Index">Thông báo</a>
+                                        <a class="dropdown-item" asp-controller="Chat" asp-action="Index">Chat</a>
+                                    }
+                                    else
+                                    {
+                                        <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Login">Đăng nhập</a>
+                                        <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Register">Đăng ký</a>
+                                    }
+                                </section>
+                            </div>
+                        </div>
+                    </li>
+
+                    @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin") && !isOwner)
+                    {
+                        <li class="nav-item dropdown mega-menu-dropdown">
+                            <a class="nav-link dropdown-toggle fw-bold" href="#" id="userMegaMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">Khách hàng</a>
+                            <div class="dropdown-menu mega-menu-menu" aria-labelledby="userMegaMenu">
+                                <div class="mega-menu-grid">
+                                    <section>
+                                        <h6>Đặt sân</h6>
+                                        <a class="dropdown-item" asp-controller="DatSan" asp-action="MyBookings">Đơn của tôi</a>
+                                        <a class="dropdown-item" asp-controller="TaiKhoan" asp-action="Index">Ví</a>
+                                        <a class="dropdown-item" asp-controller="TaiKhoan" asp-action="ThanhToan">Nạp tiền</a>
+                                        <a class="dropdown-item text-primary fw-bold" asp-controller="GiaoLuu" asp-action="Index">🤝 Giao lưu</a>
+                                    </section>
+                                    <section>
+                                        <h6>Tương tác</h6>
+                                        <a class="dropdown-item" asp-controller="Chat" asp-action="Index">Chat chủ sân</a>
+                                        <a class="dropdown-item" asp-controller="Match" asp-action="Index">Tìm đối thủ</a>
+                                        <a class="dropdown-item" asp-controller="Match" asp-action="MyPosts">Bài tìm của tôi</a>
+                                    </section>
+                                </div>
+                            </div>
+                        </li>
+                    }
+
+                    @if (isOwner && !User.IsInRole("Admin"))
+                    {
+                        <li class="nav-item dropdown mega-menu-dropdown">
+                            <a class="nav-link dropdown-toggle fw-bold" href="#" id="ownerMegaMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">Chủ sân</a>
+                            <div class="dropdown-menu mega-menu-menu" aria-labelledby="ownerMegaMenu">
+                                <div class="mega-menu-grid">
+                                    <section>
+                                        <h6>Sân của tôi</h6>
+                                        <a class="dropdown-item" asp-controller="San" asp-action="MyCourts">Sân của tôi</a>
+                                        <a class="dropdown-item" asp-controller="San" asp-action="Create">Thêm sân</a>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="LichSuDatSan">Đơn sân</a>
+                                    </section>
+                                    <section>
+                                        <h6>Vận hành</h6>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="BaoTri">Bảo trì</a>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="XacNhanQR">Quét QR</a>
+                                        <a class="dropdown-item" asp-controller="Report" asp-action="Owner">Tố cáo</a>
+                                    </section>
+                                    <section>
+                                        <h6>Liên hệ</h6>
+                                        <a class="dropdown-item" asp-controller="Chat" asp-action="Admin">Hộp thư chat</a>
+                                        <a class="dropdown-item" asp-controller="Notification" asp-action="Index">Thông báo</a>
+                                    </section>
+                                </div>
+                            </div>
+                        </li>
+                    }
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <li class="nav-item dropdown mega-menu-dropdown">
+                            <a class="nav-link dropdown-toggle text-primary fw-bold" href="#" id="adminMegaMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">Admin</a>
+                            <div class="dropdown-menu mega-menu-menu" aria-labelledby="adminMegaMenu">
+                                <div class="mega-menu-grid mega-menu-grid-admin">
+                                    <section>
+                                        <h6>Tổng quan</h6>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="Index">Dashboard</a>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="NguoiDung">Thành viên</a>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="SiteSettings">Website</a>
+                                    </section>
+                                    <section>
+                                        <h6>Sân & đơn</h6>
+                                        <a class="dropdown-item" asp-controller="San" asp-action="Create">Thêm sân</a>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="LichSuDatSan">Đơn sân</a>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="BaoTri">Bảo trì</a>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="XacNhanQR">Quét QR</a>
+                                    </section>
+                                    <section>
+                                        <h6>Tài chính</h6>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="LichSuGiaoDich">Giao dịch</a>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="YeuCauNapTien">Duyệt nạp</a>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="Vouchers">Voucher</a>
+                                    </section>
+                                    <section>
+                                        <h6>Tương tác</h6>
+                                        <a class="dropdown-item" asp-controller="Chat" asp-action="Admin">Hộp thư chat</a>
+                                        <a class="dropdown-item" asp-controller="Report" asp-action="Admin">Tố cáo</a>
+                                        <a class="dropdown-item" asp-controller="Match" asp-action="Index">Tìm đối thủ</a>
+                                        <a class="dropdown-item" asp-controller="Notification" asp-action="Index">Thông báo</a>
+                                    </section>
+                                </div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <!-- Bell Notification Icon -->
+                        <a class="btn-notification position-relative" asp-controller="Notification" asp-action="Index" title="Thông báo" style="font-size: 1.4rem; text-decoration: none; padding: 4px 8px; border-radius: 50%; transition: background-color 0.2s; display: inline-flex; align-items: center; justify-content: center;">
+                            🔔
+                        </a>
+                        <span class="small text-muted d-none d-lg-inline fw-semibold">Xin chào, @User.Identity.Name</span>
+                        <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                            <button class="btn btn-outline-danger btn-sm" type="submit">Đăng xuất</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a class="btn btn-outline-primary btn-sm px-3" asp-area="Identity" asp-page="/Account/Login">Đăng nhập</a>
+                        <a class="btn btn-primary btn-sm px-3" asp-area="Identity" asp-page="/Account/Register">Đăng ký</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container app-shell">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <section>
+                <p class="eyebrow">@siteSettings.BusinessName</p>
+                <h2>Liên hệ đặt sân</h2>
+                <p>@siteSettings.Description</p>
+                <dl class="footer-info">
+                    <dt>Địa chỉ</dt>
+                    <dd>@siteSettings.Address</dd>
+                    <dt>Điện thoại</dt>
+                    <dd><a href="tel:@siteSettings.PhoneNumber.Replace(" ", "")">@siteSettings.PhoneNumber</a></dd>
+                    <dt>Email</dt>
+                    <dd><a href="mailto:@siteSettings.Email">@siteSettings.Email</a></dd>
+                    <dt>Giờ mở cửa</dt>
+                    <dd>@siteSettings.OpeningHours</dd>
+                </dl>
+            </section>
+            <section>
+                <div class="map-card">
+                    <iframe
+                        title="Bản đồ SportHub"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        src="@siteSettings.MapEmbedUrl">
+                    </iframe>
+                </div>
+            </section>
+        </div>
+    </footer>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

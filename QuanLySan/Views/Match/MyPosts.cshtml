@@ -1,0 +1,26 @@
+@model IEnumerable<QuanLySan.Models.MatchPost>
+@{
+    ViewData["Title"] = "Bài của tôi";
+}
+
+<div class="section-heading compact-heading">
+    <div>
+        <p class="eyebrow">Chơi cùng</p>
+        <h1>Bài của tôi</h1>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">Đăng bài</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">Bạn chưa có bài đăng hoặc ứng tuyển nào.</div>
+}
+else
+{
+    <div class="match-grid">
+        @foreach (var item in Model)
+        {
+            <partial name="_MatchPostCard" model="item" />
+        }
+    </div>
+}

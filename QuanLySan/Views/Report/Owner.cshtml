@@ -1,0 +1,36 @@
+@model IEnumerable<QuanLySan.Models.CourtReport>
+@{
+    ViewData["Title"] = "Tố cáo sân của tôi";
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Chủ sân</p>
+        <h1>Tố cáo sân</h1>
+    </div>
+    <a class="btn btn-outline-primary" asp-controller="San" asp-action="MyCourts">Sân của tôi</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">Sân của bạn chưa có tố cáo nào.</div>
+}
+else
+{
+    <div class="calendar-list">
+        @foreach (var item in Model)
+        {
+            <article class="calendar-item">
+                <div>
+                    <strong>@item.San?.TenSan</strong>
+                    <span class="d-block">@item.Reason</span>
+                    <p class="mb-0 mt-2">@item.Description</p>
+                </div>
+                <div class="text-end">
+                    <span class="status-pill">@item.Status</span>
+                    <span class="d-block mt-2 small">@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+            </article>
+        }
+    </div>
+}

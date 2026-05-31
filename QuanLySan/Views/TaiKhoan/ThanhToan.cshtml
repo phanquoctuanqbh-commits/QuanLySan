@@ -1,0 +1,83 @@
+@{
+    ViewData["Title"] = "Thanh toán nạp tiền";
+    var soTien = ViewBag.SoTien as decimal? ?? 0;
+    var noiDungChuyenKhoan = ViewBag.NoiDungChuyenKhoan as string ?? "NAP SPORT";
+    var vnPayConfigured = ViewBag.VnPayConfigured as bool? ?? false;
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Thanh toán</p>
+        <h1>Nạp tiền vào tài khoản</h1>
+    </div>
+    <a class="btn btn-outline-primary" asp-action="Index">Quay lại tài khoản</a>
+</div>
+
+<div class="payment-layout">
+    <section class="payment-card">
+        <div class="payment-method-head">
+            <span class="status-pill">VNPAY</span>
+            <strong>@soTien.ToString("N0") VND</strong>
+        </div>
+        <div class="vnpay-box">
+            <strong>VNPAY</strong>
+            <span>@(vnPayConfigured ? "Sandbox đã cấu hình" : "Chế độ demo")</span>
+        </div>
+        <p class="text-muted">Thanh toán qua VNPAY sẽ cộng tiền vào ví sau khi giao dịch thành công.</p>
+        <form asp-action="ThanhToanVnPay" method="post">
+            <input type="hidden" name="soTien" value="@soTien" />
+            <button class="btn btn-primary btn-lg w-100" type="submit">Thanh toán bằng VNPAY</button>
+        </form>
+        @if (!vnPayConfigured)
+        {
+            <div class="alert alert-info mt-3 mb-0">
+                Chưa có TmnCode/HashSecret nên hệ thống dùng cổng VNPAY demo để bài chạy được.
+            </div>
+        }
+    </section>
+
+    <section class="payment-card">
+        <div class="payment-method-head">
+            <span class="status-pill">Quét mã QR</span>
+            <strong>@soTien.ToString("N0") VND</strong>
+        </div>
+        <div class="qr-box" aria-label="Mã QR thanh toán demo">
+            <div></div><div></div><div></div>
+            <div></div><div></div><div></div>
+            <div></div><div></div><div></div>
+        </div>
+        <dl class="payment-info">
+            <dt>Ngân hàng</dt>
+            <dd>MB Bank</dd>
+            <dt>Số tài khoản</dt>
+            <dd>0123456789</dd>
+            <dt>Chủ tài khoản</dt>
+            <dd>SPORT HUB</dd>
+            <dt>Nội dung</dt>
+            <dd>@noiDungChuyenKhoan</dd>
+        </dl>
+    </section>
+
+    <form asp-action="GuiYeuCauNapTien" method="post" class="app-form">
+        <h2>Gửi yêu cầu kiểm tra thủ công</h2>
+        <input type="hidden" name="soTien" value="@soTien" />
+
+        <label class="form-label" for="phuongThuc">Phương thức</label>
+        <select id="phuongThuc" name="phuongThuc" class="form-select">
+            <option value="BankTransferQR">Chuyển khoản QR</option>
+            <option value="PhoneCard">Thẻ cào điện thoại</option>
+        </select>
+
+        <label class="form-label" for="maThamChieu">Mã giao dịch hoặc mã thẻ cào</label>
+        <input id="maThamChieu" name="maThamChieu" class="form-control" placeholder="VD: FT240429123456 hoặc mã thẻ cào" />
+
+        <label class="form-label" for="ghiChu">Ghi chú</label>
+        <textarea id="ghiChu" name="ghiChu" class="form-control" rows="4" placeholder="Nhập seri thẻ, nhà mạng hoặc ghi chú chuyển khoản nếu có"></textarea>
+
+        <div class="alert alert-info mb-0">
+            Sau khi gửi yêu cầu, quản trị sẽ kiểm tra mã thanh toán. Số dư chỉ được cộng khi yêu cầu được duyệt.
+        </div>
+
+        <button class="btn btn-outline-primary btn-lg" type="submit">Gửi yêu cầu kiểm tra</button>
+    </form>
+</div>

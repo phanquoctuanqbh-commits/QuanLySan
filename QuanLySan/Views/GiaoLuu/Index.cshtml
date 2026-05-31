@@ -1,0 +1,149 @@
+@model IEnumerable<QuanLySan.Models.GiaoLuu>
+@{
+    ViewData["Title"] = "Tìm đối thủ & bạn bè giao lưu";
+    var users = ViewBag.Users as Dictionary<string, dynamic>;
+    var currentUserId = ViewBag.CurrentUserId as string;
+    var selectedLoaiSan = ViewBag.SelectedLoaiSan as string;
+}
+
+<div class="section-heading mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <p class="eyebrow">Cộng đồng</p>
+        <h1 class="fw-bold text-dark mb-1">🤝 Giao Lưu Kết Bạn</h1>
+        <p class="text-muted mb-0 font-sm">Tìm kiếm đối thủ chơi thể thao, kết nối bạn bè cùng sở thích xung quanh bạn.</p>
+    </div>
+    <div>
+        <a class="btn btn-primary px-4 py-2" asp-action="Create" style="border-radius: 8px; font-weight: 700;">
+            ➕ Đăng tin tìm đối thủ
+        </a>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card border-0 shadow-sm p-3 mb-4" style="border-radius: 12px; background-color: #fff;">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <span class="text-muted font-bold me-2 font-sm">Lọc theo loại sân:</span>
+        <a class="btn btn-sm @(string.IsNullOrEmpty(selectedLoaiSan) ? "btn-primary" : "btn-outline-secondary")" asp-action="Index" style="border-radius: 6px; font-weight: 600;">Tất cả</a>
+        <a class="btn btn-sm @(selectedLoaiSan == "Football" ? "btn-primary" : "btn-outline-secondary")" asp-action="Index" asp-route-loaiSan="Football" style="border-radius: 6px; font-weight: 600;">⚽ Bóng đá</a>
+        <a class="btn btn-sm @(selectedLoaiSan == "Badminton" ? "btn-primary" : "btn-outline-secondary")" asp-action="Index" asp-route-loaiSan="Badminton" style="border-radius: 6px; font-weight: 600;">🏸 Cầu lông</a>
+        <a class="btn btn-sm @(selectedLoaiSan == "Tennis" ? "btn-primary" : "btn-outline-secondary")" asp-action="Index" asp-route-loaiSan="Tennis" style="border-radius: 6px; font-weight: 600;">🎾 Tennis</a>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm text-center py-5" style="border-radius: 12px;">
+        <div class="card-body">
+            <span style="font-size: 3rem;">🏟️</span>
+            <h4 class="fw-bold text-dark mt-3">Chưa có tin giao lưu nào</h4>
+            <p class="text-muted mb-4">Hãy là người đầu tiên đăng tin tìm đối thủ giao lưu trong hệ thống!</p>
+            <a class="btn btn-primary" asp-action="Create" style="border-radius: 8px; font-weight: 600;">Đăng tin ngay</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var post in Model)
+        {
+            var isOwnPost = post.NguoiDangId == currentUserId;
+            var isOpponent = post.NguoiGiaoLuuId == currentUserId;
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100 position-relative transition-hover" style="border-radius: 16px; overflow: hidden; border: 1px solid rgba(0,0,0,0.03) !important;">
+                    
+                    <!-- Post Header Type Badge -->
+                    <div class="p-3 pb-0 d-flex justify-content-between align-items-center">
+                        <span class="badge @(post.LoaiSan == "Football" ? "bg-success-soft text-success" : (post.LoaiSan == "Badminton" ? "bg-warning-soft text-warning" : "bg-primary-soft text-primary")) px-3 py-2" style="border-radius: 8px; font-weight: 700; background-color: @(post.LoaiSan == "Football" ? "rgba(31,122,90,0.1)" : (post.LoaiSan == "Badminton" ? "rgba(247,144,9,0.1)" : "rgba(47,111,237,0.1)"))">
+                            @(post.LoaiSan == "Football" ? "⚽ Bóng đá" : (post.LoaiSan == "Badminton" ? "🏸 Cầu lông" : "🎾 Tennis"))
+                        </span>
+                        
+                        @if (post.TrangThai == "Accepted")
+                        {
+                            <span class="badge bg-success text-white px-3 py-2" style="border-radius: 8px; font-weight: 700;">Đã kết nối</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary text-white px-3 py-2" style="border-radius: 8px; font-weight: 700;">Đang tìm đối thủ</span>
+                        }
+                    </div>
+
+                    <div class="card-body p-3 d-flex flex-column justify-content-between">
+                        <div>
+                            <h5 class="fw-bold text-dark mb-2 mt-1" style="font-size: 1.15rem; line-height: 1.4;">@post.TieuDe</h5>
+                            <p class="text-muted font-sm mb-3" style="white-space: pre-line; line-height: 1.5; min-height: 4.5rem;">@post.NoiDung</p>
+                            
+                            <hr class="my-2 opacity-10" />
+
+                            <div class="d-flex flex-column gap-2 mb-3">
+                                <div class="d-flex align-items-center text-secondary font-sm">
+                                    <span class="me-2">📅</span>
+                                    <span>Ngày chơi: <strong>@post.NgayChoi.ToString("dd/MM/yyyy")</strong></span>
+                                </div>
+                                <div class="d-flex align-items-center text-secondary font-sm">
+                                    <span class="me-2">👤</span>
+                                    <span>Người đăng: <strong>@post.NguoiDangName</strong></span>
+                                </div>
+                                @if (post.TrangThai == "Accepted")
+                                {
+                                    <div class="d-flex align-items-center text-secondary font-sm">
+                                        <span class="me-2">🤝</span>
+                                        <span>Đối thủ: <strong>@post.NguoiGiaoLuuName</strong></span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons and Contact Details -->
+                        <div>
+                            @if (post.TrangThai == "Accepted")
+                            {
+                                <div class="p-3 bg-light rounded-3 font-xs" style="border: 1px dashed rgba(31,122,90,0.25);">
+                                    <h6 class="fw-bold text-success mb-2">🎉 Đã đồng ý giao lưu!</h6>
+                                    
+                                    @if (isOwnPost && users != null && users.TryGetValue(post.NguoiGiaoLuuId!, out var opponentContact))
+                                    {
+                                        <div class="text-dark">
+                                            <strong>Liên hệ đối thủ:</strong><br />
+                                            📞 SĐT: <a href="tel:@opponentContact.PhoneNumber" class="font-bold text-decoration-none text-primary">@opponentContact.PhoneNumber</a><br />
+                                            ✉️ Email: <a href="mailto:@opponentContact.Email" class="text-decoration-none text-secondary">@opponentContact.Email</a>
+                                        </div>
+                                    }
+                                    else if (isOpponent && users != null && users.TryGetValue(post.NguoiDangId, out var creatorContact))
+                                    {
+                                        <div class="text-dark">
+                                            <strong>Liên hệ người đăng:</strong><br />
+                                            📞 SĐT: <a href="tel:@creatorContact.PhoneNumber" class="font-bold text-decoration-none text-primary">@creatorContact.PhoneNumber</a><br />
+                                            ✉️ Email: <a href="mailto:@creatorContact.Email" class="text-decoration-none text-secondary">@creatorContact.Email</a>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-muted italic">Đã ẩn thông tin liên hệ bảo mật. Chỉ người đăng và đối thủ xem được.</div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                @if (isOwnPost)
+                                {
+                                    <button class="btn btn-secondary w-100 py-2 border-0" disabled style="border-radius: 8px; font-weight: 700;">
+                                        🙋‍♂️ Tin đăng của bạn
+                                    </button>
+                                }
+                                else
+                                {
+                                    <form asp-action="DongYGiaoLuu" asp-route-id="@post.Id" method="post">
+                                        <button class="btn btn-primary w-100 py-2" type="submit" style="border-radius: 8px; font-weight: 700; background-color: var(--primary); border: none;" onclick="return confirm('Bạn có chắc chắn đồng ý giao lưu với thành viên này? Hệ thống sẽ duyệt tự động và chia sẻ thông tin liên lạc ngay lập tức!');">
+                                            🤝 Đồng ý giao lưu ngay
+                                        </button>
+                                    </form>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

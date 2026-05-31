@@ -1,0 +1,84 @@
+@model QuanLySan.Models.MatchPost
+@{
+    ViewData["Title"] = "Đăng bài";
+    var sportTypes = ViewBag.SportTypes as IEnumerable<QuanLySan.Models.LoaiSan> ?? Enumerable.Empty<QuanLySan.Models.LoaiSan>();
+    var courts = ViewBag.Courts as IEnumerable<QuanLySan.Models.San> ?? Enumerable.Empty<QuanLySan.Models.San>();
+}
+
+<div class="form-page">
+    <div>
+        <p class="eyebrow">Chơi cùng</p>
+        <h1>Đăng bài</h1>
+        <p class="text-muted">Tạo bài tìm đối thủ hoặc người chơi cùng theo môn, giờ và trình độ.</p>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="app-form">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <label class="form-label">Loại sân</label>
+        <select asp-for="SportTypeId" class="form-select">
+            @foreach (var item in sportTypes)
+            {
+                <option value="@item.Id">@item.TenLoai</option>
+            }
+        </select>
+
+        <label class="form-label">Sân/vị trí muốn chơi</label>
+        <select asp-for="CourtId" class="form-select">
+            <option value="">Chưa chọn sân cụ thể</option>
+            @foreach (var court in courts)
+            {
+                <option value="@court.Id">@court.TenSan - @court.LoaiSan?.TenLoai</option>
+            }
+        </select>
+
+        <div class="row g-2">
+            <div class="col-md-4">
+                <label class="form-label">Ngày</label>
+                <input asp-for="Date" type="date" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Bắt đầu</label>
+                <input asp-for="StartTime" type="time" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Kết thúc</label>
+                <input asp-for="EndTime" type="time" class="form-control" />
+            </div>
+        </div>
+
+        <div class="row g-2">
+            <div class="col-md-4">
+                <label class="form-label">Cần người</label>
+                <input asp-for="NeededPlayers" type="number" min="1" max="20" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Trình độ</label>
+                <select asp-for="SkillLevel" class="form-select">
+                    <option value="Basic">Cơ bản</option>
+                    <option value="Medium">Trung bình</option>
+                    <option value="Good">Khá</option>
+                    <option value="Pro">Chuyên nghiệp</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Giới tính</label>
+                <select asp-for="PreferredGender" class="form-select">
+                    <option value="Any">Không phân biệt</option>
+                    <option value="Male">Nam</option>
+                    <option value="Female">Nữ</option>
+                </select>
+            </div>
+        </div>
+
+        <label class="form-label">Độ tuổi ưu tiên</label>
+        <input asp-for="PreferredAge" class="form-control" placeholder="Ví dụ: 18-30" />
+
+        <label class="form-label">Ghi chú</label>
+        <textarea asp-for="Note" rows="4" class="form-control" placeholder="Tìm người chơi nghiêm túc, chơi thân thiện..."></textarea>
+
+        <label class="form-label">Ảnh đính kèm</label>
+        <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp" />
+
+        <button class="btn btn-primary" type="submit">Đăng bài</button>
+    </form>
+</div>

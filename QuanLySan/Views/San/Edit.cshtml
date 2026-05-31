@@ -1,0 +1,115 @@
+@model QuanLySan.Models.San
+@{
+    ViewData["Title"] = "Sửa sân";
+}
+
+<div class="form-page">
+    <div>
+        <p class="eyebrow">Quản trị sân</p>
+        <h1>Sửa thông tin sân</h1>
+        <p class="text-muted">Cập nhật giá, mô tả, hình ảnh và trạng thái mở đặt.</p>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="app-form">
+        <input type="hidden" asp-for="Id" />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <label class="form-label">Tên sân</label>
+        <input asp-for="TenSan" class="form-control" />
+
+        <label class="form-label">Loại sân</label>
+        <select asp-for="LoaiSanId" class="form-select">
+            @foreach (var item in ViewBag.LoaiSan)
+            {
+                <option value="@item.Id">@item.TenLoai</option>
+            }
+        </select>
+
+        <label class="form-label">Giá theo giờ</label>
+        <input asp-for="Gia" class="form-control" type="number" min="0" step="1000" />
+
+        <label class="form-label">Mô tả</label>
+        <textarea asp-for="MoTa" class="form-control" rows="4"></textarea>
+
+        <label class="form-label fw-bold">Hình ảnh sân hiện tại</label>
+        <div id="existingImagesContainer" class="d-flex flex-wrap gap-3 mb-3">
+            @if (!string.IsNullOrWhiteSpace(Model.HinhAnh))
+            {
+                var paths = Model.HinhAnh.Split(';', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var path in paths)
+                {
+                    <div class="position-relative existing-image-card" style="width: 120px; height: 90px; border-radius: 8px; overflow: hidden; border: 2px solid var(--accent-light, #e2e8f0); box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.2s ease;">
+                        <img src="@path" style="width: 100%; height: 100%; object-fit: cover;" />
+                        <input type="hidden" name="existingImages" value="@path" />
+                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 d-flex align-items-center justify-content-center" 
+                                style="width: 24px; height: 24px; border-radius: 50%; padding: 0; font-size: 16px; line-height: 1; border: 1px solid rgba(255,255,255,0.4);" 
+                                onclick="removeExistingImage(this)" title="Xóa hình này">
+                            &times;
+                        </button>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted small mb-0 w-100">Chưa có hình ảnh nào được tải lên.</p>
+            }
+        </div>
+
+        <label class="form-label fw-bold">Thêm hình ảnh mới (chọn nhiều ảnh cùng lúc)</label>
+        <input type="file" name="files" multiple class="form-control" accept="image/*" />
+        <div id="imagePreviewContainer" class="d-flex flex-wrap gap-3 mt-3 mb-2"></div>
+
+        <div class="form-check">
+            <input asp-for="TrangThai" class="form-check-input" />
+            <label asp-for="TrangThai" class="form-check-label">Đang mở đặt sân</label>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" type="submit">Lưu thay đổi</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Quay lại</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function removeExistingImage(button) {
+            button.closest('.existing-image-card').remove();
+            const container = document.getElementById('existingImagesContainer');
+            if (container.querySelectorAll('.existing-image-card').length === 0) {
+                container.innerHTML = '<p class="text-muted small mb-0 w-100">Chưa có hình ảnh nào được tải lên.</p>';
+            }
+        }
+
+        document.querySelector('input[name="files"]').addEventListener('change', function(event) {
+            const container = document.getElementById('imagePreviewContainer');
+            container.innerHTML = ''; // Clear previous previews
+            const files = event.target.files;
+            
+            if (files.length > 0) {
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imgWrapper = document.createElement('div');
+                        imgWrapper.className = 'position-relative image-preview-card';
+                        imgWrapper.style.width = '120px';
+                        imgWrapper.style.height = '90px';
+                        imgWrapper.style.borderRadius = '8px';
+                        imgWrapper.style.overflow = 'hidden';
+                        imgWrapper.style.border = '2px solid var(--accent-light, #e2e8f0)';
+                        imgWrapper.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+                        
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.objectFit = 'cover';
+                        
+                        imgWrapper.appendChild(img);
+                        container.appendChild(imgWrapper);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
+    </script>
+}

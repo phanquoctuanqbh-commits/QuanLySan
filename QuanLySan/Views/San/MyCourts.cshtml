@@ -1,0 +1,50 @@
+@model IEnumerable<QuanLySan.Models.San>
+@{
+    ViewData["Title"] = "Sân của tôi";
+    var revenue = ViewBag.Revenue as Dictionary<int, (decimal Total, int Count)> ?? new Dictionary<int, (decimal Total, int Count)>();
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Chủ sân</p>
+        <h1>Sân của tôi</h1>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">Thêm sân</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">Bạn chưa có sân nào. Hãy thêm sân đầu tiên để bắt đầu quản lý.</div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var item in Model)
+        {
+            var info = revenue.TryGetValue(item.Id, out var value) ? value : (0m, 0);
+            <div class="col-md-6 col-xl-4">
+                <article class="field-card">
+                    @{
+                        var firstImage = string.IsNullOrWhiteSpace(item.HinhAnh)
+                            ? "/images/sports-field.svg"
+                            : item.HinhAnh.Split(';', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "/images/sports-field.svg";
+                    }
+                    <img src="@firstImage" alt="@item.TenSan" class="field-image" />
+                    <div class="field-body">
+                        <div class="d-flex justify-content-between gap-2">
+                            <h2>@item.TenSan</h2>
+                            <span class="status-pill @(item.TrangThai ? "open" : "closed")">@(item.TrangThai ? "Đang mở" : "Tạm ngưng")</span>
+                        </div>
+                        <p class="text-muted mb-2">@item.LoaiSan?.TenLoai</p>
+                        <div class="price">@info.Item1.ToString("N0") VND</div>
+                        <p class="small text-muted mb-3">@info.Item2 đơn đã thanh toán/xác nhận</p>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a class="btn btn-outline-primary flex-fill" asp-action="Details" asp-route-id="@item.Id">Xem</a>
+                            <a class="btn btn-outline-primary flex-fill" asp-action="Edit" asp-route-id="@item.Id">Sửa</a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        }
+    </div>
+}

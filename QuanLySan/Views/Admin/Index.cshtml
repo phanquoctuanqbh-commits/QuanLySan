@@ -1,0 +1,154 @@
+@model IEnumerable<QuanLySan.Models.DatSan>
+@{
+    ViewData["Title"] = "Quản trị";
+    var revenueChart = ViewBag.RevenueChart as IEnumerable<QuanLySan.Models.DashboardBar> ?? Enumerable.Empty<QuanLySan.Models.DashboardBar>();
+    var topSans = ViewBag.TopSans as IEnumerable<QuanLySan.Models.DashboardBar> ?? Enumerable.Empty<QuanLySan.Models.DashboardBar>();
+    var peakHours = ViewBag.PeakHours as IEnumerable<QuanLySan.Models.DashboardBar> ?? Enumerable.Empty<QuanLySan.Models.DashboardBar>();
+    var maxRevenue = Math.Max(1, revenueChart.Any() ? revenueChart.Max(x => x.Value) : 1);
+    var maxTop = Math.Max(1, topSans.Any() ? topSans.Max(x => x.Count) : 1);
+    var maxHour = Math.Max(1, peakHours.Any() ? peakHours.Max(x => x.Count) : 1);
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Dashboard</p>
+        <h1>Trang quản trị</h1>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-primary" asp-action="Vouchers">Voucher</a>
+        <a class="btn btn-outline-primary" asp-action="BaoTri">Bảo trì sân</a>
+        <a class="btn btn-outline-primary" asp-action="XacNhanQR">Xác nhận QR</a>
+        <a class="btn btn-primary" asp-controller="San" asp-action="Create">Thêm sân</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><span>@ViewBag.TongSan</span><small>Tổng sân</small></div></div>
+    <div class="col-md-3"><div class="stat-card"><span>@ViewBag.SanDangMo</span><small>Sân đang mở</small></div></div>
+    <div class="col-md-3"><div class="stat-card"><span>@ViewBag.DonChoDuyet</span><small>Đơn đã thanh toán</small></div></div>
+    <div class="col-md-3"><div class="stat-card"><span>@(((decimal)ViewBag.DoanhThu).ToString("N0"))</span><small>Doanh thu</small></div></div>
+</div>
+
+<div class="dashboard-grid">
+    <section class="insight-panel">
+        <div class="panel-head">
+            <strong>Doanh thu 7 ngày</strong>
+            <span>theo ngày đặt</span>
+        </div>
+        <div class="bar-chart">
+            @foreach (var item in revenueChart)
+            {
+                <div class="bar-row">
+                    <span>@item.Label</span>
+                    <div><i style="width:@((item.Value / maxRevenue * 100).ToString("0", System.Globalization.CultureInfo.InvariantCulture))%"></i></div>
+                    <strong>@item.Value.ToString("N0")</strong>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="insight-panel">
+        <div class="panel-head">
+            <strong>Sân nổi bật</strong>
+            <span>theo lượt đặt</span>
+        </div>
+        <div class="bar-chart">
+            @foreach (var item in topSans)
+            {
+                <div class="bar-row">
+                    <span>@item.Label</span>
+                    <div><i style="width:@(((decimal)item.Count / maxTop * 100).ToString("0", System.Globalization.CultureInfo.InvariantCulture))%"></i></div>
+                    <strong>@item.Count</strong>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="insight-panel">
+        <div class="panel-head">
+            <strong>Khung giờ cao điểm</strong>
+            <span>giờ bắt đầu</span>
+        </div>
+        <div class="bar-chart">
+            @foreach (var item in peakHours)
+            {
+                <div class="bar-row">
+                    <span>@item.Label</span>
+                    <div><i style="width:@(((decimal)item.Count / maxHour * 100).ToString("0", System.Globalization.CultureInfo.InvariantCulture))%"></i></div>
+                    <strong>@item.Count</strong>
+                </div>
+            }
+        </div>
+    </section>
+</div>
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Gần đây</p>
+        <h2>Đơn đặt sân mới</h2>
+    </div>
+    <a class="btn btn-sm btn-outline-primary" asp-action="LichSuDatSan">Xem tất cả</a>
+</div>
+
+<div class="table-responsive app-table">
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Sân</th>
+                <th>Ngày</th>
+                <th>Giờ</th>
+                <th>Tiền</th>
+                <th>Mã QR</th>
+                <th>Trạng thái</th>
+                <th class="text-end">Xử lý</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="small">@item.UserId</td>
+                    <td>@item.San?.TenSan</td>
+                    <td>@item.Ngay.ToString("dd/MM/yyyy")</td>
+                    <td>@item.GioBatDau.ToString(@"hh\:mm") - @item.GioKetThuc.ToString(@"hh\:mm")</td>
+                    <td>@item.TongTien.ToString("N0") VND</td>
+                    <td><a asp-controller="DatSan" asp-action="Ticket" asp-route-id="@item.Id">@item.MaXacNhan</a></td>
+                    <td><span class="status-pill">@item.TrangThai</span></td>
+                    <td>
+                        <form asp-action="UpdateStatus" method="post" class="d-flex justify-content-end gap-2">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <select name="status" class="form-select form-select-sm status-select">
+                                @if (item.TrangThai == "Paid")
+                                {
+                                    <option value="Paid" selected>Đã thanh toán</option>
+                                }
+                                else
+                                {
+                                    <option value="Paid">Đã thanh toán</option>
+                                }
+                                @if (item.TrangThai == "Confirmed")
+                                {
+                                    <option value="Confirmed" selected>Đã xác nhận</option>
+                                }
+                                else
+                                {
+                                    <option value="Confirmed">Đã xác nhận</option>
+                                }
+                                @if (item.TrangThai == "Cancelled")
+                                {
+                                    <option value="Cancelled" selected>Đã hủy</option>
+                                }
+                                else
+                                {
+                                    <option value="Cancelled">Đã hủy</option>
+                                }
+                            </select>
+                            <button class="btn btn-sm btn-primary" type="submit">Lưu</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

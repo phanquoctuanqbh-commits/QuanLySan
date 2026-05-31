@@ -1,0 +1,77 @@
+@{
+    ViewData["Title"] = "Lịch đặt sân";
+    var sans = ViewBag.Sans as IEnumerable<QuanLySan.Models.San> ?? Enumerable.Empty<QuanLySan.Models.San>();
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Lịch sân</p>
+        <h1>Các khung giờ đã đặt</h1>
+    </div>
+</div>
+
+<div class="calendar-toolbar">
+    <select id="sanFilter" class="form-select">
+        <option value="">Tất cả sân</option>
+        @foreach (var san in sans)
+        {
+            <option value="@san.Id">@san.TenSan</option>
+        }
+    </select>
+    <select id="statusFilter" class="form-select">
+        <option value="">Tất cả trạng thái</option>
+        <option value="Paid">Đã thanh toán</option>
+        <option value="Confirmed">Đã xác nhận</option>
+    </select>
+    <button id="reloadCalendar" class="btn btn-primary" type="button">Lọc lịch</button>
+</div>
+
+<div class="calendar-legend">
+    <span><i style="background:#2f6fed"></i> Đã thanh toán</span>
+    <span><i style="background:#1f7a5a"></i> Đã xác nhận</span>
+    <span><i style="background:#c24141"></i> Bảo trì</span>
+</div>
+
+<div id="calendarList" class="calendar-list">
+    <div class="text-muted">Đang tải lịch đặt...</div>
+</div>
+
+@section Scripts {
+    <script>
+        const root = document.getElementById('calendarList');
+        const sanFilter = document.getElementById('sanFilter');
+        const statusFilter = document.getElementById('statusFilter');
+
+        function loadCalendar() {
+            const params = new URLSearchParams();
+            if (sanFilter.value) params.set('sanId', sanFilter.value);
+            if (statusFilter.value) params.set('status', statusFilter.value);
+
+            root.innerHTML = '<div class="text-muted">Đang tải lịch đặt...</div>';
+            fetch('/DatSan/GetEvents?' + params.toString())
+                .then(response => response.json())
+                .then(items => {
+                    if (!items.length) {
+                        root.innerHTML = '<div class="empty-state">Chưa có đơn đặt sân nào phù hợp.</div>';
+                        return;
+                    }
+                    root.innerHTML = items.map(item => {
+                        const start = new Date(item.start);
+                        const end = new Date(item.end);
+                        return `<div class="calendar-item" style="border-left:6px solid ${item.color}">
+                            <div>
+                                <strong>${item.title}</strong>
+                                <span>${start.toLocaleDateString('vi-VN')} | ${start.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            ${item.code ? `<code>${item.code}</code>` : ''}
+                        </div>`;
+                    }).join('');
+                });
+        }
+
+        document.getElementById('reloadCalendar').addEventListener('click', loadCalendar);
+        sanFilter.addEventListener('change', loadCalendar);
+        statusFilter.addEventListener('change', loadCalendar);
+        loadCalendar();
+    </script>
+}

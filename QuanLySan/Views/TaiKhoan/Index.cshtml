@@ -1,0 +1,126 @@
+@model QuanLySan.Models.TaiKhoanNguoiDung
+@{
+    ViewData["Title"] = "Tài khoản";
+    var giaoDichs = ViewBag.GiaoDichs as IEnumerable<QuanLySan.Models.GiaoDich> ?? Enumerable.Empty<QuanLySan.Models.GiaoDich>();
+    var yeuCauNapTiens = ViewBag.YeuCauNapTiens as IEnumerable<QuanLySan.Models.YeuCauNapTien> ?? Enumerable.Empty<QuanLySan.Models.YeuCauNapTien>();
+    var thongBaos = ViewBag.ThongBaos as IEnumerable<QuanLySan.Models.ThongBao> ?? Enumerable.Empty<QuanLySan.Models.ThongBao>();
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Ví thanh toán</p>
+        <h1>Tài khoản của tôi</h1>
+    </div>
+    <a class="btn btn-outline-primary" asp-action="LichSu">Lịch sử giao dịch</a>
+</div>
+
+<div class="booking-layout">
+    <aside class="summary-panel">
+        <p class="eyebrow">Số dư hiện tại</p>
+        <h1>@Model.SoDu.ToString("N0") VND</h1>
+        <p>Số dư được dùng để thanh toán khi đặt sân. Yêu cầu nạp tiền chỉ được cộng sau khi quản trị kiểm tra thành công.</p>
+    </aside>
+
+    <form asp-action="NapTien" method="post" class="app-form">
+        <h2>Tạo yêu cầu nạp tiền</h2>
+        <label class="form-label" for="soTien">Số tiền</label>
+        <input id="soTien" name="soTien" class="form-control" type="number" min="10000" step="1000" value="500000" />
+        <button class="btn btn-primary btn-lg" type="submit">Tiếp tục thanh toán</button>
+    </form>
+</div>
+
+@if (thongBaos.Any())
+{
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Thông báo</p>
+            <h2>Cập nhật mới</h2>
+        </div>
+    </div>
+    <div class="notification-list">
+        @foreach (var item in thongBaos)
+        {
+            <article class="notification-item">
+                <strong>@item.TieuDe</strong>
+                <span>@item.NoiDung</span>
+                <small>@item.NgayTao.ToString("dd/MM/yyyy HH:mm")</small>
+            </article>
+        }
+    </div>
+}
+
+@if (yeuCauNapTiens.Any())
+{
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Đang xử lý</p>
+            <h2>Yêu cầu nạp tiền</h2>
+        </div>
+    </div>
+
+    <div class="table-responsive app-table">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Thời gian</th>
+                    <th>Phương thức</th>
+                    <th>Mã tham chiếu</th>
+                    <th class="text-end">Số tiền</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in yeuCauNapTiens)
+                {
+                    <tr>
+                        <td>@item.NgayGui.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@item.PhuongThuc</td>
+                        <td>@item.MaThamChieu</td>
+                        <td class="text-end">@item.SoTien.ToString("N0") VND</td>
+                        <td><span class="status-pill">@item.TrangThai</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Gần đây</p>
+        <h2>Giao dịch mới nhất</h2>
+    </div>
+</div>
+
+@if (!giaoDichs.Any())
+{
+    <div class="empty-state">Bạn chưa có giao dịch nào.</div>
+}
+else
+{
+    <div class="table-responsive app-table">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Thời gian</th>
+                    <th>Loại</th>
+                    <th>Nội dung</th>
+                    <th class="text-end">Số tiền</th>
+                    <th class="text-end">Số dư sau giao dịch</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in giaoDichs)
+                {
+                    <tr>
+                        <td>@item.NgayGiaoDich.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td><span class="status-pill">@item.LoaiGiaoDich</span></td>
+                        <td>@item.NoiDung</td>
+                        <td class="text-end @(item.SoTien < 0 ? "text-danger" : "text-success")">@item.SoTien.ToString("N0") VND</td>
+                        <td class="text-end">@item.SoDuSauGiaoDich.ToString("N0") VND</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -1,0 +1,103 @@
+@model IEnumerable<QuanLySan.Models.DatSan>
+@{
+    ViewData["Title"] = "Đơn của tôi";
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Tài khoản</p>
+        <h1>Đơn đặt sân của tôi</h1>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" asp-controller="TaiKhoan" asp-action="LichSu">Lịch sử giao dịch</a>
+        <a class="btn btn-primary" asp-controller="San" asp-action="Index">Đặt thêm sân</a>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">Bạn chưa có đơn đặt sân nào.</div>
+}
+else
+{
+    <div class="table-responsive app-table">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Sân</th>
+                    <th>Ngày</th>
+                    <th>Giờ</th>
+                    <th>Tổng tiền</th>
+                    <th>Mã QR</th>
+                    <th>Trạng thái</th>
+                    <th>Đánh giá</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <strong>@item.San?.TenSan</strong>
+                            <div class="small text-muted">@item.San?.LoaiSan?.TenLoai</div>
+                        </td>
+                        <td>@item.Ngay.ToString("dd/MM/yyyy")</td>
+                        <td>@item.GioBatDau.ToString(@"hh\:mm") - @item.GioKetThuc.ToString(@"hh\:mm")</td>
+                        <td>
+                            @item.TongTien.ToString("N0") VND
+                            @if (item.GiamGia > 0)
+                            {
+                                <div class="small text-success">Đã giảm @item.GiamGia.ToString("N0") VND</div>
+                            }
+                        </td>
+                        <td>
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Ticket" asp-route-id="@item.Id">@item.MaXacNhan</a>
+                        </td>
+                        <td><span class="status-pill">@item.TrangThai</span></td>
+                        <td>
+                            @if (item.TrangThai != "Cancelled")
+                            {
+                                <form asp-action="Rate" asp-route-id="@item.Id" method="post" class="rating-form">
+                                    <select name="soSao" class="form-select form-select-sm">
+                                        @for (var star = 5; star >= 1; star--)
+                                        {
+                                            if (item.DanhGiaSan?.SoSao == star)
+                                            {
+                                                <option value="@star" selected>@star sao</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@star">@star sao</option>
+                                            }
+                                        }
+                                    </select>
+                                    <input name="binhLuan" class="form-control form-control-sm" value="@item.DanhGiaSan?.BinhLuan" placeholder="Nhận xét" />
+                                    <button class="btn btn-sm btn-primary" type="submit">Lưu</button>
+                                </form>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (item.TrangThai != "Cancelled")
+                            {
+                                <form asp-action="Cancel" asp-route-id="@item.Id" method="post" class="d-inline-block">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Hủy đơn</button>
+                                </form>
+                            }
+                            @if (item.SanId > 0)
+                            {
+                                <a class="btn btn-sm btn-outline-warning ms-1"
+                                   asp-controller="Report"
+                                   asp-action="Create"
+                                   asp-route-sanId="@item.SanId"
+                                   style="font-weight: 600;">
+                                    ⚠️ Tố cáo
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

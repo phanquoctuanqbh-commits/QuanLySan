@@ -1,0 +1,91 @@
+@model IEnumerable<QuanLySan.Models.San>
+@{
+    ViewData["Title"] = "Danh sách sân";
+    var loaiSans = ViewBag.LoaiSans as IEnumerable<QuanLySan.Models.LoaiSan> ?? Enumerable.Empty<QuanLySan.Models.LoaiSan>();
+    int? selected = ViewBag.LoaiSanId as int?;
+    var diemDanhGia = ViewBag.DiemDanhGia as Dictionary<int, (double Diem, int SoLuot)> ?? new Dictionary<int, (double Diem, int SoLuot)>();
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+    var isOwner = User.IsInRole("Owner") || User.IsInRole("ChuSan");
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Đặt sân</p>
+        <h1>Danh sách sân</h1>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" asp-action="TimKiem">🔍 Tìm kiếm nâng cao</a>
+        @if (User.IsInRole("Admin") || isOwner)
+        {
+            <a class="btn btn-primary" asp-action="Create">Thêm sân</a>
+        }
+    </div>
+</div>
+
+<div class="filter-bar">
+    <a class="btn @(selected == null ? "btn-primary" : "btn-outline-primary")" asp-action="Index">Tất cả</a>
+    @foreach (var loai in loaiSans)
+    {
+        <a class="btn @(selected == loai.Id ? "btn-primary" : "btn-outline-primary")" asp-action="Index" asp-route-loaiSanId="@loai.Id">@loai.TenLoai</a>
+    }
+</div>
+
+<div class="row g-4">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-6 col-xl-4">
+            <article class="field-card">
+                <a asp-action="Details" asp-route-id="@item.Id">
+                    @if (!string.IsNullOrWhiteSpace(item.HinhAnh))
+                    {
+                        var firstImage = item.HinhAnh.Split(';', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "/images/sports-field.svg";
+                        <img src="@firstImage" alt="@item.TenSan" class="field-image" />
+                    }
+                    else
+                    {
+                        <div class="field-image field-placeholder">
+                            <span>@(item.LoaiSan?.TenLoai ?? "Sân")</span>
+                        </div>
+                    }
+                </a>
+                <div class="field-body">
+                    <div class="d-flex justify-content-between gap-2">
+                        <h2><a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-dark">@item.TenSan</a></h2>
+                        <span class="status-pill @(item.TrangThai ? "open" : "closed")">@(item.TrangThai ? "Đang mở" : "Tạm ngừng")</span>
+                    </div>
+                    <p class="text-muted mb-2">@item.LoaiSan?.TenLoai</p>
+                    @if (diemDanhGia.TryGetValue(item.Id, out var rating))
+                    {
+                        <div class="rating-line">★ @rating.Diem.ToString("0.0") <span>(@rating.SoLuot đánh giá)</span></div>
+                    }
+                    else
+                    {
+                        <div class="rating-line text-muted">Chưa có đánh giá</div>
+                    }
+                    <p>@item.MoTa</p>
+                    <div class="price">@item.Gia.ToString("N0") VND/giờ</div>
+                    <div class="d-flex gap-2 mt-3 flex-wrap">
+                        <a class="btn btn-outline-primary flex-fill" asp-action="Details" asp-route-id="@item.Id">Xem chi tiết</a>
+                        @if (item.TrangThai)
+                        {
+                            <a class="btn btn-success flex-fill" asp-controller="DatSan" asp-action="Create" asp-route-sanId="@item.Id">Đặt ngay</a>
+                        }
+                        else
+                        {
+                            <button class="btn btn-secondary flex-fill" disabled>Tạm ngừng</button>
+                        }
+                    </div>
+                    @if (User.IsInRole("Admin") || (isOwner && item.OwnerId == currentUserId))
+                    {
+                        <div class="d-flex gap-2 mt-2 pt-2 border-top">
+                            <a class="btn btn-sm btn-outline-primary flex-fill" asp-action="Edit" asp-route-id="@item.Id">Sửa</a>
+                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="flex-fill d-inline">
+                                <button class="btn btn-sm btn-outline-danger w-100" type="submit">Xóa</button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </article>
+        </div>
+    }
+</div>

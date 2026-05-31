@@ -1,0 +1,96 @@
+@model IEnumerable<QuanLySan.Models.Voucher>
+@{
+    ViewData["Title"] = "Quản lý voucher";
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Ưu đãi</p>
+        <h1>Quản lý voucher</h1>
+    </div>
+    <a class="btn btn-outline-primary" asp-action="Index">Về dashboard</a>
+</div>
+
+<div class="booking-layout">
+    <form asp-action="CreateVoucher" method="post" class="app-form">
+        <h2>Tạo voucher mới</h2>
+        <label class="form-label">Mã voucher</label>
+        <input name="Ma" class="form-control text-uppercase" placeholder="VD: TEAM15" />
+
+        <label class="form-label">Tên chương trình</label>
+        <input name="Ten" class="form-control" placeholder="Giảm cho đội nhóm" />
+
+        <label class="form-label">Loại giảm</label>
+        <select name="LoaiGiamGia" class="form-select">
+            <option value="Fixed">Giảm số tiền</option>
+            <option value="Percent">Giảm phần trăm</option>
+        </select>
+
+        <label class="form-label">Giá trị</label>
+        <input name="GiaTri" class="form-control" type="number" min="1" step="1000" value="50000" />
+
+        <label class="form-label">Đơn tối thiểu</label>
+        <input name="DonToiThieu" class="form-control" type="number" min="0" step="1000" value="150000" />
+
+        <div class="row g-2">
+            <div class="col-md-6">
+                <label class="form-label">Ngày bắt đầu</label>
+                <input name="NgayBatDau" class="form-control" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Ngày kết thúc</label>
+                <input name="NgayKetThuc" class="form-control" type="date" value="@DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd")" />
+            </div>
+        </div>
+
+        <label class="form-label">Số lượt tối đa</label>
+        <input name="SoLuotToiDa" class="form-control" type="number" min="1" value="50" />
+
+        <label class="form-label">Mô tả</label>
+        <input name="MoTa" class="form-control" placeholder="Áp dụng cho khung giờ sáng..." />
+
+        <button class="btn btn-primary btn-lg" type="submit">Tạo voucher</button>
+    </form>
+
+    <section class="summary-panel">
+        <p class="eyebrow">Demo nhanh</p>
+        <h2>Voucher đang có</h2>
+        <p class="text-muted">Các mã đang hoạt động sẽ xuất hiện ở màn đặt sân để người dùng bấm chọn và áp dụng khi thanh toán.</p>
+    </section>
+</div>
+
+<div class="table-responsive app-table mt-4">
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Mã</th>
+                <th>Ưu đãi</th>
+                <th>Điều kiện</th>
+                <th>Thời gian</th>
+                <th>Lượt dùng</th>
+                <th>Trạng thái</th>
+                <th class="text-end">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td><strong>@item.Ma</strong><div class="small text-muted">@item.Ten</div></td>
+                    <td>
+                        @(item.LoaiGiamGia == "Percent" ? $"{item.GiaTri:N0}%" : $"{item.GiaTri:N0} VND")
+                    </td>
+                    <td>Tối thiểu @item.DonToiThieu.ToString("N0") VND</td>
+                    <td>@item.NgayBatDau.ToString("dd/MM/yyyy") - @item.NgayKetThuc.ToString("dd/MM/yyyy")</td>
+                    <td>@item.SoLuotDaDung / @item.SoLuotToiDa</td>
+                    <td><span class="status-pill @(item.TrangThai ? "open" : "closed")">@(item.TrangThai ? "Đang bật" : "Tạm tắt")</span></td>
+                    <td class="text-end">
+                        <form asp-action="ToggleVoucher" asp-route-id="@item.Id" method="post">
+                            <button class="btn btn-sm btn-outline-primary" type="submit">Bật/tắt</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

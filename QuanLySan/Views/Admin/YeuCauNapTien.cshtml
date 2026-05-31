@@ -1,0 +1,65 @@
+@model IEnumerable<QuanLySan.Models.YeuCauNapTien>
+@{
+    ViewData["Title"] = "Duyệt nạp tiền";
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Quản trị ví</p>
+        <h1>Yêu cầu nạp tiền</h1>
+    </div>
+    <a class="btn btn-outline-primary" asp-action="Index">Quay lại quản trị</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">Chưa có yêu cầu nạp tiền nào.</div>
+}
+else
+{
+    <div class="table-responsive app-table">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Thời gian</th>
+                    <th>User</th>
+                    <th>Phương thức</th>
+                    <th>Mã tham chiếu</th>
+                    <th>Ghi chú</th>
+                    <th class="text-end">Số tiền</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Xử lý</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.NgayGui.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="small">@item.UserId</td>
+                        <td>@item.PhuongThuc</td>
+                        <td>@item.MaThamChieu</td>
+                        <td>@item.GhiChu</td>
+                        <td class="text-end">@item.SoTien.ToString("N0") VND</td>
+                        <td><span class="status-pill">@item.TrangThai</span></td>
+                        <td class="text-end">
+                            @if (item.TrangThai == "Pending")
+                            {
+                                <form asp-action="XuLyNapTien" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <input type="hidden" name="ketQua" value="Approved" />
+                                    <button class="btn btn-sm btn-success" type="submit">Duyệt</button>
+                                </form>
+                                <form asp-action="XuLyNapTien" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <input type="hidden" name="ketQua" value="Rejected" />
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Từ chối</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -1,0 +1,119 @@
+@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Đăng ký thành viên";
+}
+
+<div class="booking-layout">
+    <aside class="summary-panel">
+        <p class="eyebrow">SportHub</p>
+        <h1>Tạo tài khoản mới</h1>
+        <p class="mb-4">Chào mừng bạn đến với SportHub! Đăng ký tài khoản để bắt đầu trải nghiệm dịch vụ thể thao hiện đại, nhanh chóng và tiện lợi.</p>
+        
+        <div class="registration-perks">
+            <div class="perk-item d-flex align-items-start mb-4">
+                <span class="perk-icon me-3" style="font-size: 1.5rem;">⚡</span>
+                <div>
+                    <h5 class="mb-1 text-white" style="font-weight: 700;">Đặt sân trong 30 giây</h5>
+                    <p class="text-white-50 mb-0" style="font-size: 0.875rem;">Tìm kiếm sân trống gần nhất, đặt lịch và thanh toán tiện lợi chỉ trong vài lượt chạm.</p>
+                </div>
+            </div>
+            
+            <div class="perk-item d-flex align-items-start mb-4">
+                <span class="perk-icon me-3" style="font-size: 1.5rem;">📊</span>
+                <div>
+                    <h5 class="mb-1 text-white" style="font-weight: 700;">Quản lý vận hành toàn diện</h5>
+                    <p class="text-white-50 mb-0" style="font-size: 0.875rem;">Quản lý lịch đặt, thiết lập bảng giá linh hoạt, nhận đánh giá và doanh thu (dành cho Chủ sân).</p>
+                </div>
+            </div>
+
+            <div class="perk-item d-flex align-items-start">
+                <span class="perk-icon me-3" style="font-size: 1.5rem;">🔔</span>
+                <div>
+                    <h5 class="mb-1 text-white" style="font-weight: 700;">Thông báo thông minh</h5>
+                    <p class="text-white-50 mb-0" style="font-size: 0.875rem;">Nhận thông báo lịch đặt, bảo trì, tố cáo ngay lập tức thông qua chuông báo thời gian thực.</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="app-form">
+        <h2>Đăng ký tài khoản</h2>
+        <p class="text-muted mb-4" style="font-size: 0.9rem;">Nhập thông tin của bạn dưới đây để bắt đầu đăng ký tham gia hệ thống.</p>
+        
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+        <!-- Role Selector Cards -->
+        <div class="mb-4">
+            <label class="form-label" style="font-weight: 700;">Bạn đăng ký với vai trò:</label>
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="role-select-card active" data-role="User" id="card-user">
+                        <div class="role-select-icon">👤</div>
+                        <div class="role-select-title">Khách hàng</div>
+                        <div class="role-select-desc">Đặt sân bãi, chat & tố cáo</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="role-select-card" data-role="ChuSan" id="card-chusan">
+                        <div class="role-select-icon">🏟️</div>
+                        <div class="role-select-title">Chủ sân</div>
+                        <div class="role-select-desc">Đăng sân mới & nhận đánh giá</div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" asp-for="Input.Role" id="selectedRole" value="User" />
+            <span asp-validation-for="Input.Role" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.HoTen" class="form-label">Họ và tên</label>
+            <input asp-for="Input.HoTen" class="form-control" placeholder="Nguyễn Văn A" required />
+            <span asp-validation-for="Input.HoTen" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.Email" class="form-label">Email</label>
+            <input asp-for="Input.Email" class="form-control" autocomplete="username" placeholder="name@example.com" required />
+            <span asp-validation-for="Input.Email" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.PhoneNumber" class="form-label">Số điện thoại</label>
+            <input asp-for="Input.PhoneNumber" class="form-control" placeholder="0987654321" required />
+            <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label asp-for="Input.Password" class="form-label">Mật khẩu</label>
+                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" placeholder="Tối thiểu 6 ký tự" required />
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Input.ConfirmPassword" class="form-label">Nhập lại mật khẩu</label>
+                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" placeholder="Nhập lại mật khẩu" required />
+                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+            </div>
+        </div>
+
+        <button id="registerSubmit" type="submit" class="btn btn-primary btn-lg w-100 py-3 mb-3" style="font-weight: 700; letter-spacing: 0.5px;">Tạo tài khoản mới</button>
+        
+        <div class="text-center">
+            <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none text-primary" style="font-weight: 600;">Đã có tài khoản? Đăng nhập ngay</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelectorAll(".role-select-card").forEach((card) => {
+            card.addEventListener("click", () => {
+                document.querySelectorAll(".role-select-card").forEach((item) => item.classList.remove("active"));
+                card.classList.add("active");
+                document.getElementById("selectedRole").value = card.dataset.role;
+            });
+        });
+    </script>
+}

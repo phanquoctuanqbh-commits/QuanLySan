@@ -1,0 +1,49 @@
+@model IEnumerable<QuanLySan.Models.GiaoDich>
+@{
+    ViewData["Title"] = "Lịch sử giao dịch";
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Quản trị ví</p>
+        <h1>Lịch sử giao dịch của user</h1>
+    </div>
+    <a class="btn btn-outline-primary" asp-action="Index">Quay lại quản trị</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">Chưa có giao dịch nào.</div>
+}
+else
+{
+    <div class="table-responsive app-table">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Thời gian</th>
+                    <th>User</th>
+                    <th>Loại</th>
+                    <th>Sân</th>
+                    <th>Nội dung</th>
+                    <th class="text-end">Số tiền</th>
+                    <th class="text-end">Số dư sau giao dịch</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.NgayGiaoDich.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="small">@item.UserId</td>
+                        <td><span class="status-pill">@item.LoaiGiaoDich</span></td>
+                        <td>@(item.DatSan?.San?.TenSan ?? "-")</td>
+                        <td>@item.NoiDung</td>
+                        <td class="text-end @(item.SoTien < 0 ? "text-danger" : "text-success")">@item.SoTien.ToString("N0") VND</td>
+                        <td class="text-end">@item.SoDuSauGiaoDich.ToString("N0") VND</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

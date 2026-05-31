@@ -1,0 +1,67 @@
+@model QuanLySan.Models.GiaoLuu
+@{
+    ViewData["Title"] = "Đăng tin giao lưu";
+}
+
+<div class="form-page">
+    <aside class="summary-panel">
+        <p class="eyebrow">Đăng tin</p>
+        <h1>Tìm đối thủ</h1>
+        <p class="mb-4">Mô tả chi tiết mong muốn tìm bạn, đối thủ cùng giao lưu đá bóng, cầu lông hay tennis. Hệ thống sẽ kết nối tự động khi có người đồng ý!</p>
+        
+        <div class="perk-item d-flex align-items-start mb-3">
+            <span class="perk-icon me-3">⚽</span>
+            <div>
+                <h6 class="mb-1 text-white">Khớp kèo nhanh chóng</h6>
+                <p class="text-white-50 mb-0 font-xs">Chia sẻ rõ thời gian chơi, trình độ chơi để đối thủ dễ dàng khớp kèo giao lưu.</p>
+            </div>
+        </div>
+        
+        <div class="perk-item d-flex align-items-start">
+            <span class="perk-icon me-3">🔒</span>
+            <div>
+                <h6 class="mb-1 text-white">Bảo mật thông tin</h6>
+                <p class="text-white-50 mb-0 font-xs">Chỉ chia sẻ số điện thoại và email khi hai bên cùng đồng ý giao lưu, bảo đảm an toàn.</p>
+            </div>
+        </div>
+    </aside>
+
+    <form asp-action="Create" method="post" class="app-form">
+        <h2>Thông tin giao lưu</h2>
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+        <div class="mb-3">
+            <label asp-for="TieuDe" class="form-label">Tiêu đề tin đăng</label>
+            <input asp-for="TieuDe" class="form-control" placeholder="Ví dụ: Tìm đối thủ giao lưu bóng đá 5v5 tối nay sân Bình Thạnh" required />
+            <span asp-validation-for="TieuDe" class="text-danger"></span>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label asp-for="LoaiSan" class="form-label">Môn thể thao</label>
+                <select asp-for="LoaiSan" class="form-select">
+                    <option value="Football">⚽ Bóng đá</option>
+                    <option value="Badminton">🏸 Cầu lông</option>
+                    <option value="Tennis">🎾 Tennis</option>
+                </select>
+                <span asp-validation-for="LoaiSan" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="NgayChoi" class="form-label">Ngày dự kiến chơi</label>
+                <input asp-for="NgayChoi" class="form-control" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                <span asp-validation-for="NgayChoi" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="NoiDung" class="form-label">Nội dung chi tiết</label>
+            <textarea asp-for="NoiDung" class="form-control" rows="5" placeholder="Ví dụ: Đã đặt sân bóng lúc 19h - 20h30. Cần tìm đối thủ ngang cơ, đá vui vẻ không cay cú. Chi phí chia đôi hoặc giao lưu nước ngọt..." required></textarea>
+            <span asp-validation-for="NoiDung" class="text-danger"></span>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-primary px-4 py-2" type="submit" style="font-weight: 700;">Đăng tin tìm đối thủ</button>
+            <a class="btn btn-outline-secondary px-4 py-2" asp-action="Index" style="font-weight: 600;">Quay lại</a>
+        </div>
+    </form>
+</div>

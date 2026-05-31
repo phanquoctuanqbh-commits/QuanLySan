@@ -1,0 +1,38 @@
+@model QuanLySan.Models.CourtReport
+@{
+    var court = ViewBag.Court as QuanLySan.Models.San;
+    ViewData["Title"] = "Tố cáo sân";
+}
+
+<div class="form-page">
+    <aside class="summary-panel">
+        <p class="eyebrow">Tố cáo</p>
+        <h1>@court?.TenSan</h1>
+        <p>Gửi phản ánh khi thông tin, hình ảnh, chất lượng sân hoặc đánh giá không đúng với thực tế.</p>
+        <div class="price">@court?.Gia.ToString("N0") VND/giờ</div>
+    </aside>
+
+    <form asp-action="Create" method="post" class="app-form">
+        <h2>Phiếu tố cáo</h2>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="SanId" />
+
+        <label asp-for="Reason" class="form-label">Lý do</label>
+        <select asp-for="Reason" class="form-select">
+            <option value="">Chọn lý do</option>
+            <option>Thông tin sân không đúng</option>
+            <option>Hình ảnh khác thực tế</option>
+            <option>Chất lượng sân kém</option>
+            <option>Đánh giá có dấu hiệu sai lệch</option>
+            <option>Chủ sân xử lý không đúng</option>
+        </select>
+
+        <label asp-for="Description" class="form-label">Nội dung chi tiết</label>
+        <textarea asp-for="Description" class="form-control" rows="5" placeholder="Mô tả điều bạn gặp phải để admin kiểm tra."></textarea>
+
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-danger" type="submit">Gửi tố cáo</button>
+            <a class="btn btn-outline-primary" asp-controller="San" asp-action="Details" asp-route-id="@Model.SanId">Quay lại</a>
+        </div>
+    </form>
+</div>

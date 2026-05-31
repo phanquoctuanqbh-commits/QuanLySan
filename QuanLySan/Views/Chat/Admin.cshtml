@@ -1,0 +1,64 @@
+@model IEnumerable<QuanLySan.Models.ChatMessage>
+@{
+    ViewData["Title"] = "Chat khách hàng";
+    var threads = ViewBag.Threads as IEnumerable<QuanLySan.Models.ChatThread> ?? Enumerable.Empty<QuanLySan.Models.ChatThread>();
+    var selectedUserId = ViewBag.SelectedUserId as string;
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Hỗ trợ khách hàng</p>
+        <h1>Chat riêng với khách</h1>
+    </div>
+    <a class="btn btn-outline-primary" asp-controller="Admin" asp-action="Index">Về dashboard</a>
+</div>
+
+<div class="admin-chat-layout">
+    <aside class="chat-thread-list">
+        @if (!threads.Any())
+        {
+            <div class="empty-state">Chưa có khách hàng nhắn tin.</div>
+        }
+        else
+        {
+            @foreach (var thread in threads)
+            {
+                <a class="thread-item @(thread.UserId == selectedUserId ? "active" : "")" asp-action="Admin" asp-route-userId="@thread.UserId">
+                    <strong>@thread.UserName</strong>
+                    <span>@thread.LastMessage</span>
+                    <small>@thread.LastTime.ToString("dd/MM HH:mm")</small>
+                    @if (thread.UnreadCount > 0)
+                    {
+                        <em>@thread.UnreadCount</em>
+                    }
+                </a>
+            }
+        }
+    </aside>
+
+    <section class="chat-panel">
+        @if (string.IsNullOrWhiteSpace(selectedUserId))
+        {
+            <div class="empty-state">Chọn một khách hàng để xem hội thoại.</div>
+        }
+        else
+        {
+            <div class="chat-messages">
+                @foreach (var item in Model)
+                {
+                    <article class="chat-bubble @(item.GuiBoiAdmin ? "admin" : "user")">
+                        <strong>@(item.GuiBoiAdmin ? "Admin" : item.UserName)</strong>
+                        <p>@item.NoiDung</p>
+                        <small>@item.NgayGui.ToString("dd/MM/yyyy HH:mm")</small>
+                    </article>
+                }
+            </div>
+
+            <form asp-action="SendAdmin" method="post" class="chat-form">
+                <input type="hidden" name="userId" value="@selectedUserId" />
+                <textarea name="noiDung" class="form-control" rows="3" placeholder="Nhập phản hồi cho khách..."></textarea>
+                <button class="btn btn-primary" type="submit">Gửi phản hồi</button>
+            </form>
+        }
+    </section>
+</div>

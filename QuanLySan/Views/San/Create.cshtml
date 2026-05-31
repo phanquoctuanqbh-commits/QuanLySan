@@ -1,0 +1,78 @@
+@model QuanLySan.Models.San
+@{
+    ViewData["Title"] = "Thêm sân";
+}
+
+<div class="form-page">
+    <div>
+        <p class="eyebrow">Quản trị sân</p>
+        <h1>Thêm sân mới</h1>
+        <p class="text-muted">Nhập thông tin sân để hiển thị cho khách đặt lịch.</p>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="app-form">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <label class="form-label">Tên sân</label>
+        <input asp-for="TenSan" class="form-control" />
+
+        <label class="form-label">Loại sân</label>
+        <select asp-for="LoaiSanId" class="form-select">
+            @foreach (var item in ViewBag.LoaiSan)
+            {
+                <option value="@item.Id">@item.TenLoai</option>
+            }
+        </select>
+
+        <label class="form-label">Giá theo giờ</label>
+        <input asp-for="Gia" class="form-control" type="number" min="0" step="1000" />
+
+        <label class="form-label">Mô tả</label>
+        <textarea asp-for="MoTa" class="form-control" rows="4"></textarea>
+
+        <label class="form-label fw-bold">Hình ảnh sân (chọn nhiều ảnh cùng lúc)</label>
+        <input type="file" name="files" multiple class="form-control" accept="image/*" />
+        <div id="imagePreviewContainer" class="d-flex flex-wrap gap-3 mt-3 mb-2"></div>
+
+        <div class="form-check">
+            <input asp-for="TrangThai" class="form-check-input" />
+            <label asp-for="TrangThai" class="form-check-label">Đang mở đặt sân</label>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Lưu sân</button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelector('input[name="files"]').addEventListener('change', function(event) {
+            const container = document.getElementById('imagePreviewContainer');
+            container.innerHTML = ''; // Clear previous previews
+            const files = event.target.files;
+            
+            if (files.length > 0) {
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imgWrapper = document.createElement('div');
+                        imgWrapper.className = 'position-relative image-preview-card';
+                        imgWrapper.style.width = '120px';
+                        imgWrapper.style.height = '90px';
+                        imgWrapper.style.borderRadius = '8px';
+                        imgWrapper.style.overflow = 'hidden';
+                        imgWrapper.style.border = '2px solid var(--accent-light, #e2e8f0)';
+                        imgWrapper.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+                        
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.objectFit = 'cover';
+                        
+                        imgWrapper.appendChild(img);
+                        container.appendChild(imgWrapper);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
+    </script>
+}

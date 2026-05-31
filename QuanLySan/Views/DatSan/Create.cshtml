@@ -1,0 +1,143 @@
+@model QuanLySan.Models.DatSan
+@{
+    ViewData["Title"] = "Đặt sân";
+    var san = ViewBag.San as QuanLySan.Models.San;
+    var soDu = ViewBag.SoDu as decimal? ?? 0;
+    var vouchers = ViewBag.Vouchers as IEnumerable<QuanLySan.Models.Voucher> ?? Enumerable.Empty<QuanLySan.Models.Voucher>();
+    var booked = ViewBag.KhungGioDaDat as IEnumerable<QuanLySan.Models.DatSan> ?? Enumerable.Empty<QuanLySan.Models.DatSan>();
+    var maintenance = ViewBag.KhungGioBaoTri as IEnumerable<QuanLySan.Models.BaoTriSan> ?? Enumerable.Empty<QuanLySan.Models.BaoTriSan>();
+    var suggestions = ViewBag.GoiYKhungGio as IEnumerable<string> ?? Enumerable.Empty<string>();
+}
+
+<div class="booking-layout">
+    <aside class="summary-panel">
+        <p class="eyebrow">Thông tin sân</p>
+        <h1>@san?.TenSan</h1>
+        <p>@san?.MoTa</p>
+        <div class="price" data-hour-price="@((san?.Gia ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture))">@san?.Gia.ToString("N0") VND/giờ</div>
+        <hr />
+        <p class="eyebrow">Tài khoản thanh toán</p>
+        <div class="price">@soDu.ToString("N0") VND</div>
+        <a class="btn btn-outline-primary mt-2" asp-controller="TaiKhoan" asp-action="Index">Nạp tiền</a>
+
+        <hr />
+        <p class="eyebrow">Voucher khả dụng</p>
+        @if (!vouchers.Any())
+        {
+            <p class="text-muted mb-0">Chưa có voucher đang áp dụng.</p>
+        }
+        else
+        {
+            <div class="voucher-list">
+                @foreach (var voucher in vouchers)
+                {
+                    <button class="voucher-chip" type="button" data-voucher-code="@voucher.Ma">
+                        <strong>@voucher.Ma</strong>
+                        <span>@voucher.MoTa</span>
+                    </button>
+                }
+            </div>
+        }
+    </aside>
+
+    <form method="post" class="app-form">
+        <h2>Chọn lịch và thanh toán</h2>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="SanId" />
+
+        <label class="form-label">Ngày đặt</label>
+        <input asp-for="Ngay" type="date" class="form-control" />
+        <span asp-validation-for="Ngay" class="text-danger"></span>
+
+        <label class="form-label">Giờ bắt đầu</label>
+        <input asp-for="GioBatDau" type="time" class="form-control" />
+        <span asp-validation-for="GioBatDau" class="text-danger"></span>
+
+        <label class="form-label">Giờ kết thúc</label>
+        <input asp-for="GioKetThuc" type="time" class="form-control" />
+        <span asp-validation-for="GioKetThuc" class="text-danger"></span>
+
+        <label class="form-label">Mã voucher</label>
+        <input asp-for="MaVoucher" class="form-control text-uppercase" placeholder="VD: SPORT50" />
+        <span asp-validation-for="MaVoucher" class="text-danger"></span>
+
+        <div class="pay-preview">
+            <span>Tạm tính</span>
+            <strong id="payPreview">0 VND</strong>
+        </div>
+
+        @if (suggestions.Any())
+        {
+            <div class="smart-suggestions">
+                <strong>Khung giờ trống gợi ý</strong>
+                <div>
+                    @foreach (var item in suggestions)
+                    {
+                        <span>@item</span>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="slot-panel">
+            <strong>Lịch trong ngày đã chọn</strong>
+            @if (!booked.Any() && !maintenance.Any())
+            {
+                <p class="text-muted mb-0">Chưa có khung giờ bận.</p>
+            }
+            else
+            {
+                <div class="slot-list">
+                    @foreach (var item in booked)
+                    {
+                        <span class="slot busy">@item.GioBatDau.ToString(@"hh\:mm") - @item.GioKetThuc.ToString(@"hh\:mm")</span>
+                    }
+                    @foreach (var item in maintenance)
+                    {
+                        <span class="slot maintenance">@item.GioBatDau.ToString(@"hh\:mm") - @item.GioKetThuc.ToString(@"hh\:mm") bảo trì</span>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="alert alert-info mb-0">
+            Hệ thống sẽ trừ tiền trực tiếp từ số dư tài khoản sau khi bạn xác nhận đặt sân.
+        </div>
+
+        <button class="btn btn-success btn-lg" type="submit">Thanh toán và đặt sân</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const price = Number(document.querySelector('[data-hour-price]')?.dataset.hourPrice || 0);
+        const start = document.getElementById('GioBatDau');
+        const end = document.getElementById('GioKetThuc');
+        const preview = document.getElementById('payPreview');
+        const voucherInput = document.getElementById('MaVoucher');
+
+        function toHours(value) {
+            if (!value || !value.includes(':')) return 0;
+            const [h, m] = value.split(':').map(Number);
+            return h + m / 60;
+        }
+
+        function updatePreview() {
+            const hours = Math.max(0, toHours(end.value) - toHours(start.value));
+            const total = hours * price;
+            preview.textContent = total.toLocaleString('vi-VN') + ' VND';
+        }
+
+        document.querySelectorAll('[data-voucher-code]').forEach(button => {
+            button.addEventListener('click', () => {
+                voucherInput.value = button.dataset.voucherCode;
+                voucherInput.focus();
+            });
+        });
+
+        start.addEventListener('input', updatePreview);
+        end.addEventListener('input', updatePreview);
+        updatePreview();
+    </script>
+}

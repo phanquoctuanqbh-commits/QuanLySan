@@ -1,0 +1,43 @@
+@model IEnumerable<QuanLySan.Models.ThongBao>
+@{
+    ViewData["Title"] = "Thông báo";
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Tài khoản</p>
+        <h1>Thông báo</h1>
+    </div>
+    @if (Model.Any(x => !x.DaDoc))
+    {
+        <form asp-action="MarkAllRead" method="post">
+            <button class="btn btn-outline-primary" type="submit">Đánh dấu đã đọc</button>
+        </form>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">Bạn chưa có thông báo nào.</div>
+}
+else
+{
+    <div class="notification-center">
+        @foreach (var item in Model)
+        {
+            <article class="notification-row @(item.DaDoc ? "" : "unread")">
+                <div>
+                    <strong>@item.TieuDe</strong>
+                    <p>@item.NoiDung</p>
+                    <span>@item.NgayTao.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+                <form asp-action="MarkRead" method="post">
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <button class="btn btn-sm @(item.DaDoc ? "btn-outline-primary" : "btn-primary")" type="submit">
+                        @(string.IsNullOrWhiteSpace(item.LienKet) ? "Đã đọc" : "Mở")
+                    </button>
+                </form>
+            </article>
+        }
+    </div>
+}

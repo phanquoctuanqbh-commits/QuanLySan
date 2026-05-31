@@ -1,0 +1,38 @@
+@model IEnumerable<QuanLySan.Models.ChatMessage>
+@{
+    ViewData["Title"] = "Chat với chủ sân";
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Hỗ trợ riêng</p>
+        <h1>Chat với chủ sân</h1>
+    </div>
+</div>
+
+<div class="chat-shell">
+    <section class="chat-panel">
+        @if (!Model.Any())
+        {
+            <div class="empty-state">Bạn chưa có tin nhắn nào. Hãy gửi câu hỏi cho chủ sân.</div>
+        }
+        else
+        {
+            <div class="chat-messages">
+                @foreach (var item in Model)
+                {
+                    <article class="chat-bubble @(item.GuiBoiAdmin ? "admin" : "user")">
+                        <strong>@(item.GuiBoiAdmin ? "Chủ sân" : "Bạn")</strong>
+                        <p>@item.NoiDung</p>
+                        <small>@item.NgayGui.ToString("dd/MM/yyyy HH:mm")</small>
+                    </article>
+                }
+            </div>
+        }
+
+        <form asp-action="Send" method="post" class="chat-form">
+            <textarea name="noiDung" class="form-control" rows="3" placeholder="Nhập tin nhắn cần hỗ trợ..."></textarea>
+            <button class="btn btn-primary" type="submit">Gửi tin nhắn</button>
+        </form>
+    </section>
+</div>

@@ -1,0 +1,160 @@
+@model IEnumerable<QuanLySan.Models.UserManagementViewModel>
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+}
+
+<div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
+    <div class="card-header bg-white py-3 border-0 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h4 class="mb-1 fw-bold text-dark">👥 Quản Lý Thành Viên</h4>
+            <p class="text-muted mb-0 font-sm">Quản lý tài khoản của khách hàng, chủ sân và thực hiện các biện pháp cảnh cáo, đuổi thẳng khi cần thiết.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <input type="text" id="userInputSearch" class="form-control" placeholder="Tìm kiếm nhanh..." style="max-width: 250px; border-radius: 8px;" />
+        </div>
+    </div>
+    
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="userTable" style="font-size: 0.95rem;">
+                <thead class="table-light text-uppercase font-xs text-muted" style="letter-spacing: 0.5px;">
+                    <tr>
+                        <th class="ps-4">Họ và tên</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Vai trò</th>
+                        <th>Số dư ví</th>
+                        <th class="text-end pe-4" style="min-width: 280px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle d-flex align-items-center justify-content-center text-white font-bold" style="width: 40px; height: 40px; border-radius: 50%; background: @(user.RoleName == "Quản trị viên" ? "#2f6fed" : (user.RoleName == "Chủ sân" ? "#1f7a5a" : "#667085")); font-size: 1.1rem;">
+                                        @user.HoTen.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-dark d-flex align-items-center gap-2">
+                                            @user.HoTen
+                                            @if (user.CanhCaoDen.HasValue && user.CanhCaoDen.Value > DateTime.Now)
+                                            {
+                                                <span class="badge bg-warning text-dark font-xs px-2 py-1" style="border-radius: 4px;">⚠️ Đang Cảnh cáo</span>
+                                            }
+                                        </div>
+                                        <small class="text-muted font-xs d-block">ID: @user.UserId.Substring(0, Math.Min(8, user.UserId.Length))...</small>
+                                        @if (user.CanhCaoDen.HasValue && user.CanhCaoDen.Value > DateTime.Now)
+                                        {
+                                            <div class="alert alert-warning p-1 px-2 mb-0 mt-1 font-xs" style="border-radius: 6px; border: 1px solid rgba(247,144,9,0.2);">
+                                                <strong>Đến:</strong> @user.CanhCaoDen.Value.ToString("dd/MM/yyyy HH:mm")<br />
+                                                <strong>Lý do:</strong> @user.LyDoCanhCao
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="mailto:@user.Email" class="text-decoration-none text-dark">@user.Email</a>
+                            </td>
+                            <td class="text-secondary">@user.PhoneNumber</td>
+                            <td>
+                                @if (user.RoleName == "Quản trị viên")
+                                {
+                                    <span class="badge bg-primary-soft text-primary px-3 py-2" style="border-radius: 6px; font-weight: 700; background-color: rgba(47, 111, 237, 0.1);">Quản trị viên</span>
+                                }
+                                else if (user.RoleName == "Chủ sân")
+                                {
+                                    <span class="badge bg-success-soft text-success px-3 py-2" style="border-radius: 6px; font-weight: 700; background-color: rgba(31, 122, 90, 0.1);">Chủ sân</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary-soft text-secondary px-3 py-2" style="border-radius: 6px; font-weight: 700; background-color: rgba(102, 112, 133, 0.1);">Khách hàng</span>
+                                }
+                            </td>
+                            <td>
+                                <strong class="text-dark">@user.SoDu.ToString("N0") VND</strong>
+                            </td>
+                            <td class="text-end pe-4">
+                                @if (user.RoleName != "Quản trị viên")
+                                {
+                                    <!-- Warn Button triggers specific modal -->
+                                    <button class="btn btn-outline-warning btn-sm px-3 me-2" data-bs-toggle="modal" data-bs-target="#warnModal-@user.UserId" style="border-radius: 6px; font-weight: 700;" type="button">
+                                        ⚠️ Cảnh cáo
+                                    </button>
+
+                                    <!-- Ban/Delete Button -->
+                                    <form asp-controller="Admin" asp-action="XoaNguoiDung" asp-route-id="@user.UserId" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn đuổi thẳng thành viên này ra khỏi hệ thống và xóa toàn bộ dữ liệu liên quan? Thao tác này KHÔNG thể hoàn tác!');" style="display:inline-block;">
+                                        <button class="btn btn-danger btn-sm px-3" style="border-radius: 6px; font-weight: 700;" type="submit">
+                                            🛑 Đuổi thẳng
+                                        </button>
+                                    </form>
+
+                                    <!-- Unique Warn Modal for this user -->
+                                    <div class="modal fade" id="warnModal-@user.UserId" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <form asp-controller="Admin" asp-action="CanhCaoNguoiDung" method="post" class="modal-content">
+                                                <input type="hidden" name="userId" value="@user.UserId" />
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title fw-bold text-dark">⚠️ Cảnh cáo tài khoản</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body text-start">
+                                                    <p class="font-sm text-muted">Thiết lập cảnh cáo hoặc mở khóa đối với thành viên <strong>@user.HoTen</strong>.</p>
+                                                    
+                                                    <div class="mb-3">
+                                                        <label class="form-label font-bold text-dark" style="font-weight: 700;">Thời gian cảnh cáo (Khóa đặt sân)</label>
+                                                        <select name="soNgay" class="form-select">
+                                                            <option value="0">Gỡ cảnh cáo (Mở khóa hoạt động)</option>
+                                                            <option value="1">1 Ngày</option>
+                                                            <option value="3">3 Ngày</option>
+                                                            <option value="7">7 Ngày</option>
+                                                            <option value="30">30 Ngày</option>
+                                                            <option value="365">1 Năm</option>
+                                                        </select>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <label class="form-label font-bold text-dark" style="font-weight: 700;">Lý do cảnh cáo</label>
+                                                        <textarea name="lyDo" class="form-control" rows="3" required placeholder="Nhập lý do cảnh cáo (ví dụ: Không đến sân nhiều lần, vi phạm quy định)...">@user.LyDoCanhCao</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                                                    <button type="submit" class="btn btn-warning font-bold text-dark" style="font-weight: 700;">Xác nhận cảnh cáo</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted font-xs italic">Không được phép</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById("userInputSearch").addEventListener("keyup", function() {
+            var input = this.value.toLowerCase();
+            var rows = document.querySelectorAll("#userTable tbody tr");
+            
+            rows.forEach(function(row) {
+                var text = row.innerText.toLowerCase();
+                if (text.includes(input)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+    </script>
+}

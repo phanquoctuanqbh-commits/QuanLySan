@@ -1,0 +1,66 @@
+@model IEnumerable<QuanLySan.Models.MatchPost>
+@{
+    ViewData["Title"] = "Tìm đối thủ";
+    var sportTypes = ViewBag.SportTypes as IEnumerable<QuanLySan.Models.LoaiSan> ?? Enumerable.Empty<QuanLySan.Models.LoaiSan>();
+    int? sportTypeId = ViewBag.SportTypeId as int?;
+    DateTime? selectedDate = ViewBag.Date as DateTime?;
+    string? skillLevel = ViewBag.SkillLevel as string;
+    var suggestions = ViewBag.Suggestions as IEnumerable<QuanLySan.Models.MatchPost> ?? Enumerable.Empty<QuanLySan.Models.MatchPost>();
+}
+
+<div class="section-heading compact-heading">
+    <div>
+        <p class="eyebrow">Chơi cùng</p>
+        <h1>Tìm đối thủ</h1>
+    </div>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a class="btn btn-primary" asp-action="Create">Đăng bài</a>
+    }
+</div>
+
+<div class="match-toolbar">
+    <form method="get" class="filter-bar match-filter">
+        <select name="sportTypeId" class="form-select">
+            <option value="">Môn chơi</option>
+            @foreach (var item in sportTypes)
+            {
+                <!option value="@item.Id" @(sportTypeId == item.Id ? "selected" : "")>@item.TenLoai</!option>
+            }
+        </select>
+        <input type="date" name="date" class="form-control" value="@selectedDate?.ToString("yyyy-MM-dd")" />
+        <select name="skillLevel" class="form-select">
+            <!option value="" @(string.IsNullOrWhiteSpace(skillLevel) ? "selected" : "")>Trình độ</!option>
+            <!option value="Basic" @(skillLevel == "Basic" ? "selected" : "")>Cơ bản</!option>
+            <!option value="Medium" @(skillLevel == "Medium" ? "selected" : "")>Trung bình</!option>
+            <!option value="Good" @(skillLevel == "Good" ? "selected" : "")>Khá</!option>
+            <!option value="Pro" @(skillLevel == "Pro" ? "selected" : "")>Chuyên nghiệp</!option>
+        </select>
+        <button class="btn btn-outline-primary" type="submit">Lọc</button>
+    </form>
+</div>
+
+@if (suggestions.Any())
+{
+    <section class="match-suggestions">
+        <h2>Gợi ý phù hợp</h2>
+        <div class="match-grid">
+            @foreach (var item in suggestions)
+            {
+                <partial name="_MatchPostCard" model="item" />
+            }
+        </div>
+    </section>
+}
+
+<div class="match-grid">
+    @foreach (var item in Model)
+    {
+        <partial name="_MatchPostCard" model="item" />
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">Chưa có bài tìm đối thủ phù hợp.</div>
+}

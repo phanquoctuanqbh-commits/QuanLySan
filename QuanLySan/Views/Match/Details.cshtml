@@ -1,0 +1,127 @@
+@model QuanLySan.Models.MatchPost
+@{
+    ViewData["Title"] = "Bài tìm người";
+    var currentUserId = ViewBag.CurrentUserId as string ?? string.Empty;
+    var ratings = ViewBag.UserRatings as Dictionary<string, double> ?? new Dictionary<string, double>();
+    var isOwner = currentUserId == Model.UserId;
+    var group = Model.PlayingGroup;
+}
+
+<div class="section-heading compact-heading">
+    <div>
+        <p class="eyebrow">Chơi cùng</p>
+        <h1>@Model.CourtType</h1>
+    </div>
+    <a class="btn btn-outline-primary" asp-action="Index">Danh sách</a>
+</div>
+
+<div class="details-grid">
+    <section class="detail-section">
+        <article class="detail-card">
+            <h2>Lịch chơi</h2>
+            <div class="match-meta mb-3">
+                <span>@Model.Date.ToString("dd/MM/yyyy")</span>
+                <span>@Model.StartTime.ToString(@"hh\:mm") - @Model.EndTime.ToString(@"hh\:mm")</span>
+                <span>Cần @Model.NeededPlayers người</span>
+                <span>@Model.SkillLevel</span>
+                <span>@Model.PreferredGender</span>
+            </div>
+            <p>@Model.Note</p>
+            @if (Model.Court != null)
+            {
+                <p class="text-muted mb-0">Sân: @Model.Court.TenSan</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" alt="Ảnh bài đăng" class="match-photo" />
+            }
+        </article>
+
+        @if (group != null)
+        {
+            <article class="detail-card">
+                <div class="d-flex justify-content-between flex-wrap gap-2">
+                    <h2>Nhóm chơi</h2>
+                    <a class="btn btn-success" asp-action="BookGroup" asp-route-id="@group.Id">Đặt sân chung</a>
+                </div>
+                <div class="calendar-list mt-3">
+                    @foreach (var member in group.Members)
+                    {
+                        <div class="calendar-item">
+                            <div>
+                                <strong>@member.UserName</strong>
+                                <span>@member.Role</span>
+                                @if (member.RatingReceived > 0)
+                                {
+                                    <span>Đánh giá: @member.RatingReceived.ToString("0.#") sao</span>
+                                }
+                            </div>
+                            @if (member.UserId != currentUserId && User.Identity?.IsAuthenticated == true)
+                            {
+                                <form asp-action="RateMember" method="post" class="rating-form">
+                                    <input type="hidden" name="groupId" value="@group.Id" />
+                                    <input type="hidden" name="targetUserId" value="@member.UserId" />
+                                    <input name="stars" type="number" min="1" max="5" value="5" class="form-control form-control-sm" />
+                                    <input name="comment" class="form-control form-control-sm" placeholder="Nhận xét" />
+                                    <button class="btn btn-sm btn-outline-primary" type="submit">Đánh giá</button>
+                                </form>
+                            }
+                        </div>
+                    }
+                </div>
+            </article>
+        }
+    </section>
+
+    <aside class="detail-section">
+        @if (User.Identity?.IsAuthenticated == true && !isOwner && Model.Status == "Open")
+        {
+            <article class="detail-card app-form">
+                <h2>Ứng tuyển</h2>
+                <form asp-action="Apply" asp-route-id="@Model.Id" method="post" class="app-form p-0 border-0 shadow-none bg-transparent">
+                    <select name="skillLevel" class="form-select">
+                        <option value="Basic">Cơ bản</option>
+                        <option value="Medium">Trung bình</option>
+                        <option value="Good">Khá</option>
+                        <option value="Pro">Chuyên nghiệp</option>
+                    </select>
+                    <textarea name="message" class="form-control" rows="3" placeholder="Lời nhắn cho chủ bài"></textarea>
+                    <button class="btn btn-primary" type="submit">Apply</button>
+                </form>
+            </article>
+        }
+
+        <article class="detail-card">
+            <h2>Ứng tuyển</h2>
+            @if (!Model.Applications.Any())
+            {
+                <p class="text-muted mb-0">Chưa có người ứng tuyển.</p>
+            }
+            else
+            {
+                <div class="calendar-list">
+                    @foreach (var app in Model.Applications.OrderByDescending(x => x.CreatedAt))
+                    {
+                        var rating = ratings.TryGetValue(app.ApplicantUserId, out var value) ? value : app.PreviousRating;
+                        <div class="calendar-item align-items-start">
+                            <div>
+                                <strong>@app.ApplicantName</strong>
+                                <span>@app.SkillLevel · @app.Status</span>
+                                <span>Uy tín: @(rating > 0 ? rating.ToString("0.0") + " sao" : "Chưa có")</span>
+                                <p class="mb-0 mt-2">@app.Message</p>
+                            </div>
+                            @if (isOwner && app.Status == "Pending")
+                            {
+                                <form asp-action="Decide" method="post" class="d-flex gap-2">
+                                    <input type="hidden" name="applicationId" value="@app.Id" />
+                                    <button class="btn btn-sm btn-success" name="status" value="Accepted">Nhận</button>
+                                    <button class="btn btn-sm btn-outline-danger" name="status" value="Rejected">Từ chối</button>
+                                </form>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </article>
+    </aside>
+</div>

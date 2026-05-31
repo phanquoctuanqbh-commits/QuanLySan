@@ -1,0 +1,347 @@
+@model IEnumerable<QuanLySan.Models.CourtSearchResultViewModel>
+@{
+    ViewData["Title"] = "Tìm sân";
+    var loaiSans = ViewBag.LoaiSans as IEnumerable<QuanLySan.Models.LoaiSan> ?? Enumerable.Empty<QuanLySan.Models.LoaiSan>();
+    DateTime ngay = ViewBag.Ngay;
+    int? selectedLoai = ViewBag.LoaiSanId as int?;
+    decimal? giaMin = ViewBag.GiaMin as decimal?;
+    decimal? giaMax = ViewBag.GiaMax as decimal?;
+    TimeSpan? gioBatDau = ViewBag.GioBatDau as TimeSpan?;
+    TimeSpan? gioKetThuc = ViewBag.GioKetThuc as TimeSpan?;
+    double? userLat = ViewBag.UserLat as double?;
+    double? userLng = ViewBag.UserLng as double?;
+    double? maxDistance = ViewBag.MaxDistance as double?;
+    string? sortBy = ViewBag.SortBy as string;
+}
+
+<div class="section-heading mb-4">
+    <div>
+        <p class="eyebrow">Bộ lọc</p>
+        <h1>Tìm sân</h1>
+    </div>
+    <a class="btn btn-outline-primary btn-sm" asp-action="Index">Danh sách</a>
+</div>
+
+<div class="search-layout">
+    <!-- Left Filter Panel -->
+    <aside class="filters-panel app-form">
+        <h2 class="h5 fw-bold mb-3">Bộ lọc</h2>
+        <form method="get" asp-action="TimKiem" id="searchForm">
+            <!-- Hidden Geolocation Fields -->
+            <input type="hidden" name="userLat" id="userLat" value="@userLat" />
+            <input type="hidden" name="userLng" id="userLng" value="@userLng" />
+
+            <!-- Keyword Search -->
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Từ khóa</label>
+                <input type="text" name="query" class="form-control" placeholder="Tên sân, mô tả, địa chỉ..." value="@ViewBag.Query" />
+            </div>
+
+            <!-- Court Type -->
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Loại sân</label>
+                <select name="loaiSanId" class="form-select">
+                    <option value="">Tất cả loại sân</option>
+                    @foreach (var item in loaiSans)
+                    {
+                        <!option value="@item.Id" @(selectedLoai == item.Id ? "selected" : "")>@item.TenLoai</!option>
+                    }
+                </select>
+            </div>
+
+            <!-- Price Filter -->
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Giá thuê (VND/giờ)</label>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <input type="number" name="giaMin" class="form-control" placeholder="Từ" value="@giaMin" min="0" step="10000" />
+                    </div>
+                    <div class="col-6">
+                        <input type="number" name="giaMax" class="form-control" placeholder="Đến" value="@giaMax" min="0" step="10000" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Availability -->
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Ngày</label>
+                <input type="date" name="ngay" class="form-control" value="@ngay.ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <!-- Specific Time Slot filter -->
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Khung giờ</label>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <select name="gioBatDau" class="form-select">
+                            <option value="">Giờ bắt đầu</option>
+                            @for (int h = 6; h <= 22; h++)
+                            {
+                                var ts = new TimeSpan(h, 0, 0);
+                                <!option value="@ts" @(gioBatDau == ts ? "selected" : "")>@h:00</!option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <select name="gioKetThuc" class="form-select">
+                            <option value="">Giờ kết thúc</option>
+                            @for (int h = 7; h <= 23; h++)
+                            {
+                                var ts = new TimeSpan(h, 0, 0);
+                                <!option value="@ts" @(gioKetThuc == ts ? "selected" : "")>@h:00</!option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <small class="text-muted d-block mt-1">Chỉ hiện sân còn trống.</small>
+            </div>
+
+            <!-- Geolocation Selector -->
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Vị trí của bạn (Đo khoảng cách)</label>
+                <div class="d-grid gap-2 mb-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="getCurrentLocation()">
+                        📍 Lấy vị trí từ trình duyệt
+                    </button>
+                </div>
+                <select id="presetLocation" class="form-select" onchange="usePresetLocation(this)">
+                    <!option value="" @(userLat == null ? "selected" : "")>-- Chọn vị trí giả lập (Để test) --</!option>
+                    <!option value="10.8222,106.6874" @(userLat == 10.8222 ? "selected" : "")>ĐH Công nghiệp TP.HCM (IUH)</!option>
+                    <!option value="10.8236,106.6853" @(userLat == 10.8236 ? "selected" : "")>Chợ Gò Vấp (Cách IUH 0.3km)</!option>
+                    <!option value="10.8127,106.6781" @(userLat == 10.8127 ? "selected" : "")>Công viên Gia Định (Cách IUH 1.4km)</!option>
+                    <!option value="10.8185,106.6637" @(userLat == 10.8185 ? "selected" : "")>Sân bay Tân Sơn Nhất (Cách IUH 3.2km)</!option>
+                </select>
+                <div id="locationStatus" class="small mt-1 text-success fw-bold" style="display: @(userLat != null ? "block" : "none")">
+                    Đã xác định vị trí: @(userLat?.ToString("0.0000")), @(userLng?.ToString("0.0000"))
+                </div>
+            </div>
+
+            <!-- Max Distance Filter -->
+            <div class="mb-4" id="distanceFilterGroup" style="display: @(userLat != null ? "block" : "none")">
+                <label class="form-label small fw-bold d-flex justify-content-between">
+                    <span>Khoảng cách tối đa</span>
+                    <span id="distanceVal">@(maxDistance ?? 5) km</span>
+                </label>
+                <input type="range" name="maxDistance" class="form-range" min="1" max="15" step="1" value="@(maxDistance ?? 5)" oninput="document.getElementById('distanceVal').innerText = this.value + ' km'" />
+            </div>
+
+            <!-- Form Submit & Clear buttons -->
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Tìm kiếm sân</button>
+                <a asp-action="TimKiem" class="btn btn-outline-secondary">Xóa bộ lọc</a>
+            </div>
+        </form>
+    </aside>
+
+    <!-- Right Results Panel -->
+    <main class="results-panel">
+        <!-- Sort and Summary header -->
+        <div class="detail-card d-flex justify-content-between align-items-center flex-wrap gap-2 py-3 px-4">
+            <span class="fw-bold text-muted">Có @Model.Count() sân phù hợp</span>
+            <div class="d-flex align-items-center gap-2">
+                <label class="small text-nowrap fw-bold text-muted mb-0">Sắp xếp:</label>
+                <select class="form-select form-select-sm" style="width: auto;" onchange="updateSort(this.value)">
+                    <!option value="" @(string.IsNullOrEmpty(sortBy) ? "selected" : "")>Tên sân (Mặc định)</!option>
+                    <!option value="price_asc" @(sortBy == "price_asc" ? "selected" : "")>Giá thuê: Thấp đến Cao</!option>
+                    <!option value="price_desc" @(sortBy == "price_desc" ? "selected" : "")>Giá thuê: Cao đến Thấp</!option>
+                    <!option value="rating" @(sortBy == "rating" ? "selected" : "")>Đánh giá khách hàng cao nhất</!option>
+                    @if (userLat.HasValue)
+                    {
+                        <!option value="distance" @(sortBy == "distance" ? "selected" : "")>Khoảng cách: Gần nhất</!option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <div class="fs-1 mb-2">⚽</div>
+                <h3>Không tìm thấy sân phù hợp</h3>
+                <p class="mb-0">Hãy thử nới lỏng bộ lọc giá, đổi ngày kiểm tra hoặc tăng bán kính khoảng cách để tìm thấy nhiều lựa chọn hơn.</p>
+            </div>
+        }
+        else
+        {
+            <!-- Results Court Loop -->
+            @foreach (var item in Model)
+            {
+                <article class="field-card p-0 d-flex flex-column flex-lg-row">
+                    <div style="flex: 0 0 240px; position: relative;">
+                        @if (!string.IsNullOrWhiteSpace(item.Court.HinhAnh))
+                        {
+                            var firstImage = item.Court.HinhAnh.Split(';', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "/images/sports-field.svg";
+                            <img src="@firstImage" alt="@item.Court.TenSan" class="field-image h-100" style="object-fit: cover; min-height: 180px; width: 100%;" />
+                        }
+                        else
+                        {
+                            <div class="field-image field-placeholder h-100" style="min-height: 180px; width: 100%;">
+                                <span>@(item.Court.LoaiSan?.TenLoai ?? "Sân")</span>
+                            </div>
+                        }
+                    </div>
+                    <div class="field-body flex-fill d-flex flex-column justify-content-between p-4">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                <h2 class="h5 fw-bold mb-0">
+                                    <a asp-action="Details" asp-route-id="@item.Court.Id" class="text-decoration-none text-dark">@item.Court.TenSan</a>
+                                </h2>
+                                <span class="price text-nowrap">@item.Court.Gia.ToString("N0") VND/giờ</span>
+                            </div>
+                            
+                            <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                                <span class="badge bg-secondary text-dark">@item.Court.LoaiSan?.TenLoai</span>
+                                @if (item.Distance.HasValue)
+                                {
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                        📍 Cách bạn @item.Distance.Value.ToString("0.1") km
+                                    </span>
+                                }
+                                @if (item.RatingCount > 0)
+                                {
+                                    <span class="rating-line text-warning mb-0" style="font-size: 13px;">
+                                        ★ @item.AverageRating.ToString("0.0") <span>(@item.RatingCount đánh giá)</span>
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Chưa có đánh giá</span>
+                                }
+                            </div>
+
+                            <p class="text-muted small mb-2">📍 @item.Court.DiaChi</p>
+                            <p class="small mb-3">@item.Court.MoTa</p>
+                        </div>
+
+                        <!-- Availability Timetable horizontal scrollable list -->
+                        <div>
+                            <div class="small fw-bold text-muted mb-1 d-flex justify-content-between">
+                    <span>Giờ trống @ngay.ToString("dd/MM"):</span>
+                    <span class="text-success small">Nhấn để đặt</span>
+                            </div>
+                            <div class="availability-timeline">
+                                @for (int h = 6; h <= 22; h++)
+                                {
+                                    var start = new TimeSpan(h, 0, 0);
+                                    var end = new TimeSpan(h + 1, 0, 0);
+
+                                    // Check conflict with bookings or maintenance
+                                    var bookingConflict = item.BookedSlots.FirstOrDefault(x => start < x.End && end > x.Start);
+
+                                    if (bookingConflict != null)
+                                    {
+                                        if (bookingConflict.Label == "Bảo trì")
+                                        {
+                                            <span class="timeline-slot maintenance" title="Đang bảo trì từ @bookingConflict.Start.ToString(@"hh\:mm") đến @bookingConflict.End.ToString(@"hh\:mm")">
+                                                🛠️ @h:00
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="timeline-slot busy" title="Khung giờ đã được đặt từ @bookingConflict.Start.ToString(@"hh\:mm") đến @bookingConflict.End.ToString(@"hh\:mm")">
+                                                🔒 @h:00
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="DatSan" asp-action="Create" 
+                                           asp-route-sanId="@item.Court.Id" 
+                                           asp-route-ngay="@ngay.ToString("yyyy-MM-dd")" 
+                                           asp-route-gioBatDau="@start.ToString(@"hh\:mm\:ss")" 
+                                           asp-route-gioKetThuc="@end.ToString(@"hh\:mm\:ss")" 
+                                           class="timeline-slot free" 
+                                           title="Giờ trống: Đặt ngay từ @h:00 - @(h+1):00">
+                                            🟢 @h:00
+                                        </a>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            }
+        }
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        function getCurrentLocation() {
+            const statusDiv = document.getElementById("locationStatus");
+            const presetSelect = document.getElementById("presetLocation");
+            
+            if (!navigator.geolocation) {
+                alert("Trình duyệt của bạn không hỗ trợ định vị GPS.");
+                return;
+            }
+
+            statusDiv.style.display = "block";
+            statusDiv.className = "small mt-1 text-muted";
+            statusDiv.innerText = "⏳ Đang lấy tọa độ GPS của bạn...";
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    document.getElementById("userLat").value = lat;
+                    document.getElementById("userLng").value = lng;
+                    presetSelect.value = ""; // Clear simulation selection
+
+                    statusDiv.className = "small mt-1 text-success fw-bold";
+                    statusDiv.innerText = `📍 GPS thành công: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                    document.getElementById("distanceFilterGroup").style.display = "block";
+                    
+                    // Automatically submit search to show distances
+                    document.getElementById("searchForm").submit();
+                },
+                (error) => {
+                    statusDiv.className = "small mt-1 text-danger";
+                    statusDiv.innerText = "❌ Định vị GPS không thành công hoặc bị từ chối.";
+                    console.error("GPS Error: ", error);
+                },
+                { enableHighAccuracy: true, timeout: 8000 }
+            );
+        }
+
+        function usePresetLocation(select) {
+            const val = select.value;
+            const statusDiv = document.getElementById("locationStatus");
+            const distGroup = document.getElementById("distanceFilterGroup");
+
+            if (!val) {
+                document.getElementById("userLat").value = "";
+                document.getElementById("userLng").value = "";
+                statusDiv.style.display = "none";
+                distGroup.style.display = "none";
+                return;
+            }
+
+            const parts = val.split(",");
+            const lat = parts[0];
+            const lng = parts[1];
+
+            document.getElementById("userLat").value = lat;
+            document.getElementById("userLng").value = lng;
+
+            statusDiv.style.display = "block";
+            statusDiv.className = "small mt-1 text-success fw-bold";
+            statusDiv.innerText = `📍 Vị trí giả lập: ${lat}, ${lng}`;
+            distGroup.style.display = "block";
+
+            // Submit form to calculate and filter distances
+            document.getElementById("searchForm").submit();
+        }
+
+        function updateSort(val) {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (val) {
+                urlParams.set('sortBy', val);
+            } else {
+                urlParams.delete('sortBy');
+            }
+            window.location.search = urlParams.toString();
+        }
+    </script>
+}
